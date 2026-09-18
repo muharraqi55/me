@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ملخص المحفظة | Muharraqi Pro</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   المتغيرات — الوضع الليلي
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0f1720; --card:#16212e; --card2:#1c2a3a;
+  --text:#e8eef5; --muted:#8ea0b5; --border:#243547;
+  --primary:#4dabf7; --green:#20c997; --red:#fa5252; --gold:#ffc107;
+  --purple:#9775fa;
+  --input-bg:#0f1720;
+  --shadow:0 12px 30px rgba(0,0,0,.35);
+  --topbar-bg:linear-gradient(135deg,#1c2a3a,#16212e);
+  --modal-bg:rgba(0,0,0,.7);
+}
+body.light-mode{
+  --bg:#f4f6f9; --card:#ffffff; --card2:#f8fafc;
+  --text:#1a202c; --muted:#64748b; --border:#e2e8f0;
+  --primary:#2563eb; --green:#059669; --red:#dc2626; --gold:#d97706;
+  --purple:#7c3aed;
+  --input-bg:#ffffff;
+  --shadow:0 12px 30px rgba(0,0,0,.08);
+  --topbar-bg:linear-gradient(135deg,#ffffff,#f8fafc);
+  --modal-bg:rgba(15,23,32,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 50% -10%, #1b2b3d 0%, var(--bg) 60%);
+  color:var(--text); min-height:100vh; padding:0;
+  transition:background .3s, color .3s;
+  font-size:14px;
+}
+body.light-mode{
+  background:radial-gradient(1200px 600px at 50% -10%, #e0e7ff 0%, var(--bg) 60%);
+}
+.wrap{max-width:1200px;margin:0 auto;padding:30px 20px}
+
+/* ═══════════════════════════════════════════════════════════
+   الشريط العلوي
+   ═══════════════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:var(--topbar-bg);
+  border-bottom:2px solid var(--border);
+  box-shadow:0 4px 15px rgba(0,0,0,.15);
+  padding:12px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:15px;flex-wrap:wrap;
+  backdrop-filter:blur(10px);
+  transition:background .3s, border-color .3s;
+}
+.topbar .brand{
+  font-weight:800;font-size:1.05em;color:var(--primary);
+  display:flex;align-items:center;gap:10px;
+}
+.topbar .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lang-switch{
+  display:flex;background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.lang-switch button{
+  padding:7px 14px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;font-weight:700;font-size:.85em;
+  transition:.2s;font-family:inherit;
+}
+.lang-switch button.active{background:var(--primary);color:#fff}
+.lang-switch button:not(.active):hover{background:var(--border);color:var(--text)}
+
+.font-controls{
+  display:flex;background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+}
+.font-controls button{
+  padding:7px 12px;border:none;background:transparent;
+  color:var(--text);cursor:pointer;font-weight:800;font-size:.9em;
+  transition:.2s;font-family:inherit;min-width:36px;
+}
+.font-controls button:hover{background:var(--primary);color:#fff}
+.font-controls .font-val{
+  padding:7px 10px;color:var(--muted);font-size:.8em;
+  display:flex;align-items:center;font-family:'Roboto Mono',monospace;
+  border-left:1px solid var(--border);border-right:1px solid var(--border);
+  min-width:50px;justify-content:center;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   الأزرار المنبثقة
+   ═══════════════════════════════════════════════════════════ */
+.floating-bar{
+  position:fixed;right:18px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:12px;
+  z-index:999;
+}
+body[dir="ltr"] .floating-bar{right:auto;left:18px}
+.fab{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--card);color:var(--text);
+  border:2px solid var(--border);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3em;box-shadow:var(--shadow);
+  transition:all .25s;position:relative;
+  font-family:inherit;
+}
+.fab:hover{
+  transform:scale(1.12) rotate(6deg);
+  border-color:var(--primary);
+  color:var(--primary);
+}
+.fab.danger{border-color:rgba(220,38,38,.5)}
+.fab.danger:hover{border-color:var(--red);color:var(--red)}
+.fab .tooltip{
+  position:absolute;right:calc(100% + 12px);top:50%;
+  transform:translateY(-50%) translateX(10px);
+  background:var(--card);color:var(--text);
+  padding:8px 14px;border-radius:10px;
+  border:1px solid var(--border);
+  font-size:.78em;font-weight:600;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:.25s;
+  box-shadow:var(--shadow);font-family:'Segoe UI',sans-serif;
+}
+.fab .tooltip::after{
+  content:'';position:absolute;left:100%;top:50%;
+  transform:translateY(-50%);
+  border:6px solid transparent;border-left-color:var(--card);
+}
+.fab:hover .tooltip{opacity:1;transform:translateY(-50%) translateX(0)}
+body[dir="ltr"] .fab .tooltip{
+  right:auto;left:calc(100% + 12px);
+  transform:translateY(-50%) translateX(-10px);
+}
+body[dir="ltr"] .fab .tooltip::after{
+  left:auto;right:100%;
+  border-left-color:transparent;border-right-color:var(--card);
+}
+body[dir="ltr"] .fab:hover .tooltip{transform:translateY(-50%) translateX(0)}
+
+/* ═══════════════════════════════════════════════════════════
+   الأنماط العامة
+   ═══════════════════════════════════════════════════════════ */
+h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
+.sub{text-align:center;color:var(--muted);font-size:.9em;margin-bottom:25px}
+.toolbar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:25px}
+.btn{
+  background:linear-gradient(135deg,#4dabf7,#1c7ed6);
+  color:#fff;border:none;padding:10px 20px;border-radius:10px;
+  cursor:pointer;font-weight:600;font-size:.9em;transition:.2s;
+  font-family:inherit;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(77,171,247,.4)}
+.btn.ghost{background:transparent;border:2px solid var(--border);color:var(--text)}
+.btn.green{background:linear-gradient(135deg,#20c997,#12b886)}
+.btn.red{background:linear-gradient(135deg,#fa5252,#e03131);padding:6px 12px;font-size:.8em}
+.grid{
+  display:grid;gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  margin-bottom:30px;
+}
+.card{
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;padding:22px;
+  position:relative;overflow:hidden;transition:.3s;
+}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.card::before{content:'';position:absolute;top:0;right:0;left:0;height:4px;background:var(--primary)}
+.card.gold::before{background:var(--gold)}
+.card.green::before{background:var(--green)}
+.card.red::before{background:var(--red)}
+.card.purple::before{background:var(--purple)}
+.card .label{font-size:.85em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:600}
+.card .value{
+  font-family:'Roboto Mono',Consolas,monospace;
+  font-size:1.7em;font-weight:700;direction:ltr;text-align:right;
+  word-break:break-all;line-height:1.2;
+}
+.card .value.green{color:var(--green)}
+.card .value.red{color:var(--red)}
+.card .value.gold{color:var(--gold)}
+.card .value.purple{color:var(--purple)}
+.card .value.neutral{color:var(--muted)}
+.card .hint{font-size:.7em;color:var(--muted);margin-top:8px;font-weight:500;opacity:.85;line-height:1.6}
+.card .hint b{color:var(--text);font-family:'Roboto Mono',monospace}
+.status{
+  text-align:center;padding:14px;border-radius:10px;
+  background:var(--card);border:1px solid var(--border);
+  color:var(--muted);font-size:.9em;margin-bottom:20px;
+}
+.status.ok{color:var(--green);border-color:rgba(32,201,151,.4)}
+.status.err{color:var(--red);border-color:rgba(250,82,82,.4)}
+.footer{text-align:center;color:var(--muted);font-size:.8em;margin-top:40px;padding-top:20px;border-top:1px solid var(--border)}
+.back-link{display:inline-block;margin-top:15px;color:var(--primary);text-decoration:none;font-size:.9em}
+.back-link:hover{text-decoration:underline}
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.table-section{
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;
+  padding:22px;margin-top:30px;
+  border-top:4px solid var(--purple);
+}
+.table-header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:15px;flex-wrap:wrap;margin-bottom:18px;
+  padding-bottom:14px;border-bottom:2px solid var(--border);
+}
+.table-header h2{font-size:1.15em;color:var(--purple);display:flex;align-items:center;gap:8px}
+.table-wrapper{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table.invest-table{width:100%;border-collapse:collapse;min-width:720px;background:var(--card)}
+table.invest-table thead{background:linear-gradient(135deg,#1c2a3a,#16212e)}
+body.light-mode table.invest-table thead{background:linear-gradient(135deg,#f1f5f9,#e2e8f0)}
+table.invest-table thead th{
+  padding:14px 12px;text-align:center;font-size:.85em;font-weight:700;
+  color:var(--muted);letter-spacing:.5px;border-bottom:2px solid var(--border);white-space:nowrap;
+}
+table.invest-table tbody tr{transition:.2s;border-bottom:1px solid var(--border)}
+table.invest-table tbody tr:last-child{border-bottom:none}
+table.invest-table tbody tr:hover{background:rgba(77,171,247,.05)}
+table.invest-table tbody td{padding:10px 12px;text-align:center;font-size:.9em;vertical-align:middle}
+table.invest-table tbody td.serial{
+  font-family:'Roboto Mono',monospace;font-weight:700;color:var(--purple);width:60px;
+}
+table.invest-table tbody td input,
+table.invest-table tbody td textarea{
+  width:100%;background:var(--input-bg);
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:8px 10px;font-size:.9em;font-family:inherit;
+  transition:.2s;outline:none;resize:none;
+}
+table.invest-table tbody td input:focus,
+table.invest-table tbody td textarea:focus{
+  border-color:var(--purple);box-shadow:0 0 0 3px rgba(151,117,250,.15);
+}
+table.invest-table tbody td input[type="number"]{
+  text-align:left;direction:ltr;font-family:'Roboto Mono',monospace;
+}
+table.invest-table tbody td textarea{min-height:38px;max-height:120px;overflow-y:auto}
+table.invest-table tbody td input[type="date"]{cursor:pointer}
+table.invest-table tbody td input[type="date"]::-webkit-calendar-picker-indicator{
+  filter:invert(.7);cursor:pointer;
+}
+body.light-mode table.invest-table tbody td input[type="date"]::-webkit-calendar-picker-indicator{
+  filter:invert(.2);
+}
+table.invest-table tbody td.actions{width:80px}
+table.invest-table tfoot tr{
+  background:linear-gradient(135deg,rgba(151,117,250,.15),rgba(77,171,247,.10));
+  border-top:2px solid var(--purple);
+}
+table.invest-table tfoot td{
+  padding:16px 14px;font-weight:700;text-align:center;color:var(--text);font-size:.95em;
+}
+table.invest-table tfoot td .foot-label{color:var(--muted);font-weight:700;font-size:.95em}
+table.invest-table tfoot td .foot-value{
+  font-family:'Roboto Mono',Consolas,monospace;font-size:1.15em;
+  color:var(--purple);direction:ltr;margin-right:6px;font-weight:800;
+}
+.empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-style:italic}
+.empty-state .icon{font-size:2.5em;display:block;margin-bottom:10px;opacity:.5}
+
+/* ═══════════════════════════════════════════════════════════
+   نافذة تحذير المسح
+   ═══════════════════════════════════════════════════════════ */
+.warning-modal-overlay{
+  position:fixed;inset:0;background:var(--modal-bg);
+  backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+  z-index:99999;padding:20px;
+  animation:fadeIn .25s ease;
+}
+.warning-modal-overlay.active{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.warning-modal{
+  background:var(--card);
+  border-radius:20px;
+  max-width:580px;width:100%;
+  max-height:92vh;overflow-y:auto;
+  box-shadow:0 25px 80px rgba(0,0,0,.5);
+  border:2px solid var(--border);
+  animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp{
+  from{transform:translateY(40px) scale(.92);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+.warning-header{
+  background:linear-gradient(135deg,#dc2626,#991b1b);
+  color:#fff;padding:24px 22px;
+  border-radius:18px 18px 0 0;
+  text-align:center;
+}
+.warning-header .icon-big{
+  font-size:3.2em;margin-bottom:8px;
+  display:inline-block;
+  animation:pulseWarning 1.5s ease-in-out infinite;
+}
+@keyframes pulseWarning{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.15)}
+}
+.warning-header h3{font-size:1.35em;font-weight:800;margin-bottom:5px}
+.warning-header p{font-size:.85em;opacity:.9}
+.warning-body{padding:24px 22px}
+.warning-list{
+  background:rgba(220,38,38,.08);
+  border:2px dashed rgba(220,38,38,.4);
+  border-radius:12px;
+  padding:16px 18px;
+  margin-bottom:18px;
+}
+.warning-list-title{
+  font-weight:800;color:#dc2626;
+  font-size:1.02em;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.warning-list ul{list-style:none;padding:0;margin:0}
+.warning-list li{
+  padding:7px 0;color:var(--text);
+  font-size:.92em;font-weight:600;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px dashed var(--border);
+}
+.warning-list li:last-child{border-bottom:none}
+.warning-list li::before{
+  content:'✕';color:#dc2626;font-weight:800;
+  flex-shrink:0;font-size:1.05em;
+}
+.save-reminder{
+  background:linear-gradient(135deg,rgba(32,201,151,.12),rgba(5,150,105,.08));
+  border:2px solid var(--green);
+  border-radius:12px;
+  padding:16px 18px;
+  margin-bottom:18px;
+  text-align:center;
+}
+.save-reminder .reminder-title{
+  font-weight:800;color:var(--green);
+  font-size:1em;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.save-reminder .reminder-text{
+  font-size:.87em;color:var(--text);
+  line-height:1.7;margin-bottom:12px;
+}
+.save-reminder .reminder-text b{color:var(--green)}
+.btn-save-now{
+  background:linear-gradient(135deg,#20c997,#059669);
+  color:#fff;border:none;
+  padding:12px 24px;border-radius:10px;
+  font-weight:800;font-size:.95em;cursor:pointer;
+  transition:.2s;font-family:inherit;
+  display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 4px 15px rgba(32,201,151,.35);
+}
+.btn-save-now:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(32,201,151,.55);
+}
+
+.warning-actions{
+  display:grid;
+  grid-template-columns:1fr 1.4fr;
+  gap:10px;
+  margin-top:6px;
+}
+.warning-actions button{
+  padding:15px 18px;border-radius:12px;
+  font-weight:800;font-size:1em;cursor:pointer;
+  transition:.2s;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:2px solid transparent;
+}
+.btn-cancel-warn{
+  background:var(--card2);color:var(--text);
+  border-color:var(--border);
+}
+.btn-cancel-warn:hover{
+  background:var(--border);
+  transform:translateY(-2px);
+}
+.btn-delete-confirm{
+  background:linear-gradient(135deg,#dc2626,#991b1b);
+  color:#fff;cursor:pointer;
+  box-shadow:0 4px 15px rgba(220,38,38,.4);
+}
+.btn-delete-confirm:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(220,38,38,.6);
+}
+.btn-delete-confirm:active{
+  transform:translateY(0);
+  box-shadow:0 2px 8px rgba(220,38,38,.5);
+}
+@media (max-width:560px){
+  .warning-actions{grid-template-columns:1fr}
+  .warning-header h3{font-size:1.15em}
+  .warning-body{padding:18px 16px}
+}
+
+@media (max-width:900px){
+  .floating-bar{
+    right:8px;top:auto;bottom:20px;transform:none;
+    flex-direction:row;gap:8px;
+  }
+  body[dir="ltr"] .floating-bar{left:8px;right:auto}
+  .fab{width:44px;height:44px;font-size:1.1em}
+  .fab .tooltip{display:none}
+}
+@media (max-width:768px){
+  table.invest-table tbody td{padding:8px 6px;font-size:.82em}
+  table.invest-table tbody td input,
+  table.invest-table tbody td textarea{padding:6px 8px;font-size:.85em}
+  .table-header h2{font-size:1em}
+  .topbar{padding:10px 12px}
+  .topbar .brand{font-size:.95em}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ الشريط العلوي ═══════ -->
+<div class="topbar">
+  <div class="brand">📊 <span data-i18n="brand">ملخص المحفظة</span></div>
+  <div class="controls">
+    <div class="lang-switch">
+      <button id="btnAr" onclick="setLang('ar')" class="active">🇸🇦 عربي</button>
+      <button id="btnEn" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+    <div class="font-controls">
+      <button onclick="changeFontSize(-0.1)" title="تصغير">−</button>
+      <div class="font-val" id="fontVal">100%</div>
+      <button onclick="changeFontSize(0.1)" title="تكبير">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ الأزرار المنبثقة ═══════ -->
+<div class="floating-bar">
+  <button class="fab" id="fabCurrency" onclick="toggleCurrency()">
+    💵
+    <span class="tooltip" id="tipCurrency">تبديل العملة (دولار ⇄ دينار)</span>
+  </button>
+  <button class="fab" id="fabTheme" onclick="toggleTheme()">
+    🌙
+    <span class="tooltip" id="tipTheme">الوضع الليلي / النهاري</span>
+  </button>
+  <button class="fab" id="fabSave" onclick="saveDataToFile()">
+    💾
+    <span class="tooltip" id="tipSave">حفظ المعلومات</span>
+  </button>
+  <button class="fab" id="fabLoad" onclick="document.getElementById('loadFileInput').click()">
+    📂
+    <span class="tooltip" id="tipLoad">استرجاع المعلومات</span>
+  </button>
+  <button class="fab danger" id="fabDelete" onclick="openDeleteWarning()">
+    🗑️
+    <span class="tooltip" id="tipDelete">مسح جميع البيانات</span>
+  </button>
+</div>
+
+<input type="file" id="loadFileInput" accept=".json" style="display:none">
+
+<!-- ═══════════════════════════════════════════════════════════
+     نافذة تحذير المسح — زر تأكيد مباشر
+     ═══════════════════════════════════════════════════════════ -->
+<div class="warning-modal-overlay" id="deleteWarningModal">
+  <div class="warning-modal" onclick="event.stopPropagation()">
+    <div class="warning-header">
+      <span class="icon-big">⚠️</span>
+      <h3 data-i18n="warnTitle">تحذير هام جداً!</h3>
+      <p data-i18n="warnSubtitle">عملية المسح لا يمكن التراجع عنها</p>
+    </div>
+    <div class="warning-body">
+
+      <div class="warning-list">
+        <div class="warning-list-title">
+          <span>🗑️</span>
+          <span data-i18n="warnWillDelete">سيتم حذف نهائياً:</span>
+        </div>
+        <ul>
+          <li data-i18n="warnItem1">جميع صفوف جدول الإضافات</li>
+          <li data-i18n="warnItem2">جميع الإعدادات (لغة، عملة، ثيم، حجم خط)</li>
+          <li data-i18n="warnItem3">إعدادات البطاقات والبيانات المحفوظة</li>
+        </ul>
+      </div>
+
+      <div class="save-reminder">
+        <div class="reminder-title">
+          <span>💾</span>
+          <span data-i18n="warnSaveTitle">احفظ بياناتك قبل المتابعة!</span>
+        </div>
+        <div class="reminder-text" data-i18n="warnSaveText">
+          اضغط على زر حفظ المعلومات الآن لتنزيل نسخة احتياطية من بياناتك قبل المسح.
+        </div>
+        <button class="btn-save-now" onclick="saveDataToFile()">
+          <span>💾</span>
+          <span data-i18n="warnSaveBtn">حفظ نسخة احتياطية الآن</span>
+        </button>
+      </div>
+
+      <div class="warning-actions">
+        <button class="btn-cancel-warn" onclick="closeDeleteWarning()">
+          <span>✕</span>
+          <span data-i18n="warnCancel">إلغاء</span>
+        </button>
+        <button class="btn-delete-confirm" id="btnDeleteConfirm"
+                onclick="executeDeleteAll()">
+          <span>🗑️</span>
+          <span data-i18n="warnDeleteBtn">مسح كل البيانات</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1 data-i18n="title">📊 ملخص المحفظة</h1>
+  <div class="sub" data-i18n="subtitle">Muharraqi Pro Edition — صفحة مستقلة تقرأ نفس البيانات</div>
+
+  <div class="status" id="status">
+    <span class="spinner"></span>
+    <span data-i18n="loading">جاري تحميل البيانات...</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" onclick="refresh()" data-i18n="btnRefresh">🔄 تحديث الآن</button>
+    <button class="btn ghost" onclick="backToMain()" data-i18n="btnBack">↩️ الصفحة الرئيسية</button>
+  </div>
+
+  <!-- البطاقات -->
+  <div class="grid">
+    <div class="card purple">
+      <div class="label" data-i18n="cardInvested">💼 إجمالي المبلغ المستثمر (المحفظة)</div>
+      <div class="value purple" id="totalInvested">0.00 $</div>
+      <div class="hint">
+        🔹 <span data-i18n="hintAuto">تلقائي من المحفظة:</span> <b id="hintAuto">0.00 $</b><br>
+        ➕ <span data-i18n="hintManual">إضافاتك (الجدول):</span> <b id="hintManual">0.00 $</b>
+      </div>
+    </div>
+    <div class="card gold">
+      <div class="label" data-i18n="cardPnl">📈 إجمالي الربح / الخسارة $</div>
+      <div class="value gold" id="totalPnl">—</div>
+    </div>
+    <div class="card green">
+      <div class="label" data-i18n="cardCurrent">💎 إجمالي القيمة الحالية</div>
+      <div class="value green" id="totalCurrent">—</div>
+    </div>
+    <div class="card red">
+      <div class="label" data-i18n="cardPnlPct">📊 إجمالي الربح / الخسارة %</div>
+      <div class="value red" id="totalPnlPct">—</div>
+    </div>
+    <div class="card purple">
+      <div class="label" data-i18n="cardDiff">🔻 الفرق (إجمالي المستثمر − القيمة الحالية)</div>
+      <div class="value purple" id="differenceValue">0.00 $</div>
+    </div>
+  </div>
+
+  <!-- الجدول -->
+  <div class="table-section">
+    <div class="table-header">
+      <h2 data-i18n="tableTitle">💼 جدول إضافات على مستثمر المحفظة</h2>
+      <button class="btn green" onclick="addRowTo()" data-i18n="btnAddRow">➕ إضافة صف جديد</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="invest-table">
+        <thead>
+          <tr>
+            <th style="width:60px">#</th>
+            <th style="width:22%" data-i18n="thName">الاسم</th>
+            <th style="width:18%" data-i18n="thAmount">المبلغ المستثمر</th>
+            <th style="width:18%" data-i18n="thDate">التاريخ</th>
+            <th data-i18n="thNote">الملاحظات</th>
+            <th style="width:80px" data-i18n="thActions">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody2"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6">
+              <span class="foot-label" data-i18n="footLabel">➕ مجموع الإضافات اليدوية</span>
+              <span class="foot-value" id="footTotal2">0.00 $</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span data-i18n="footerText">نسألكم الدعاء بظهر الغيب 🤲 — جميع البيانات محفوظة محلياً في متصفحك</span>
+    <br>
+    <a href="index.html" class="back-link" data-i18n="footerBack">← العودة للصفحة الرئيسية</a>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   مفاتيح localStorage
+   ═══════════════════════════════════════════════════════════ */
+const LS_KEY_DATA = 'cryptoTrackerUniversal_v41_data';
+const TABLE_KEY = 'muharraqi_portfolio_table_v1';
+const LS_KEY_SETTINGS = 'muharraqi_summary_settings_v1';
+const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
+
+/* ═══════════════════════════════════════════════════════════
+   المتغيرات العامة
+   ═══════════════════════════════════════════════════════════ */
+let currentCurrency = 'USD';
+let currentLang = 'ar';
+let fontScale = 1;
+
+const CURRENCIES = {
+  USD:{symbol:'$',   rate:1,    decimals:2, nameAr:'دولار أمريكي', nameEn:'US Dollar'},
+  BHD:{symbol:'د.ب', rate:0.376, decimals:3, nameAr:'دينار بحريني', nameEn:'Bahraini Dinar'}
+};
+const curInfo = () => CURRENCIES[currentCurrency] || CURRENCIES.USD;
+
+/* ═══════════════════════════════════════════════════════════
+   الترجمة
+   ═══════════════════════════════════════════════════════════ */
+const T = {
+  ar: {
+    brand: 'ملخص المحفظة',
+    title: '📊 ملخص المحفظة',
+    subtitle: 'Muharraqi Pro Edition — صفحة مستقلة تقرأ نفس البيانات',
+    loading: 'جاري تحميل البيانات...',
+    btnRefresh: '🔄 تحديث الآن',
+    btnBack: '↩️ الصفحة الرئيسية',
+    btnAddRow: '➕ إضافة صف جديد',
+    cardInvested: '💼 إجمالي المبلغ المستثمر (المحفظة)',
+    cardPnl: '📈 إجمالي الربح / الخسارة $',
+    cardCurrent: '💎 إجمالي القيمة الحالية',
+    cardPnlPct: '📊 إجمالي الربح / الخسارة %',
+    cardDiff: '🔻 الفرق (إجمالي المستثمر − القيمة الحالية)',
+    hintAuto: 'تلقائي من المحفظة:',
+    hintManual: 'إضافاتك (الجدول):',
+    tableTitle: '💼 جدول إضافات على مستثمر المحفظة',
+    thName: 'الاسم',
+    thAmount: 'المبلغ المستثمر',
+    thDate: 'التاريخ',
+    thNote: 'الملاحظات',
+    thActions: 'إجراءات',
+    footLabel: '➕ مجموع الإضافات اليدوية',
+    footerText: 'نسألكم الدعاء بظهر الغيب 🤲 — جميع البيانات محفوظة محلياً في متصفحك',
+    footerBack: '← العودة للصفحة الرئيسية',
+    tipCurrency: 'تبديل العملة (دولار ⇄ دينار)',
+    tipTheme: 'الوضع الليلي / النهاري',
+    tipSave: 'حفظ المعلومات',
+    tipLoad: 'استرجاع المعلومات',
+    tipDelete: 'مسح جميع البيانات',
+    statusOk: 'تم التحديث — عدد العملات:',
+    statusNoData: '⚠️ لا توجد بيانات محفظة. الصفحة ستعمل بالجدول اليدوي فقط.',
+    statusNoCoins: '⚠️ لا توجد عملات مضافة.',
+    loadingMsg: 'جاري قراءة البيانات وجلب الأسعار...',
+    at: 'آخر تحديث:',
+    confirmDelete: 'هل تريد حذف هذا الصف؟',
+    emptyState: 'لا توجد صفوف. اضغط "➕ إضافة صف جديد" للبدء.',
+    saveSuccess: '✅ تم حفظ الملفين (JSON + TXT)',
+    loadSuccess: '✅ تم استرجاع البيانات بنجاح!',
+    loadError: '❌ فشل في استرجاع البيانات',
+    warnTitle: 'تحذير هام جداً!',
+    warnSubtitle: 'عملية المسح لا يمكن التراجع عنها',
+    warnWillDelete: 'سيتم حذف نهائياً:',
+    warnItem1: 'جميع صفوف جدول الإضافات',
+    warnItem2: 'جميع الإعدادات (لغة، عملة، ثيم، حجم خط)',
+    warnItem3: 'إعدادات البطاقات والبيانات المحفوظة',
+    warnSaveTitle: 'احفظ بياناتك قبل المتابعة!',
+    warnSaveText: 'اضغط على زر حفظ المعلومات الآن لتنزيل نسخة احتياطية من بياناتك قبل المسح.',
+    warnSaveBtn: 'حفظ نسخة احتياطية الآن',
+    warnCancel: 'إلغاء',
+    warnDeleteBtn: 'مسح كل البيانات',
+    deletedSuccess: '✅ تم مسح جميع البيانات بنجاح',
+  },
+  en: {
+    brand: 'Portfolio Summary',
+    title: '📊 Portfolio Summary',
+    subtitle: 'Muharraqi Pro Edition — Independent page reads same data',
+    loading: 'Loading data...',
+    btnRefresh: '🔄 Refresh Now',
+    btnBack: '↩️ Main Page',
+    btnAddRow: '➕ Add New Row',
+    cardInvested: '💼 Total Invested Amount (Portfolio)',
+    cardPnl: '📈 Total Profit / Loss $',
+    cardCurrent: '💎 Total Current Value',
+    cardPnlPct: '📊 Total Profit / Loss %',
+    cardDiff: '🔻 Difference (Total Invested − Current Value)',
+    hintAuto: 'Auto from portfolio:',
+    hintManual: 'Your additions (table):',
+    tableTitle: '💼 Portfolio Invested Additions Table',
+    thName: 'Name',
+    thAmount: 'Invested Amount',
+    thDate: 'Date',
+    thNote: 'Notes',
+    thActions: 'Actions',
+    footLabel: '➕ Manual Additions Total',
+    footerText: 'Please remember us in your prayers 🤲 — All data stored locally',
+    footerBack: '← Back to Main Page',
+    tipCurrency: 'Switch currency (USD ⇄ BHD)',
+    tipTheme: 'Dark / Light mode',
+    tipSave: 'Save data',
+    tipLoad: 'Load data',
+    tipDelete: 'Delete all data',
+    statusOk: 'Updated — Coins:',
+    statusNoData: '⚠️ No portfolio data. Page will use manual table only.',
+    statusNoCoins: '⚠️ No coins added.',
+    loadingMsg: 'Reading data & fetching prices...',
+    at: 'Last update:',
+    confirmDelete: 'Delete this row?',
+    emptyState: 'No rows. Click "➕ Add New Row" to start.',
+    saveSuccess: '✅ Both files saved (JSON + TXT)',
+    loadSuccess: '✅ Data loaded successfully!',
+    loadError: '❌ Failed to load data',
+    warnTitle: 'Very Important Warning!',
+    warnSubtitle: 'Deletion cannot be undone',
+    warnWillDelete: 'Will be permanently deleted:',
+    warnItem1: 'All table rows',
+    warnItem2: 'All settings (language, currency, theme, font)',
+    warnItem3: 'Cards settings and saved data',
+    warnSaveTitle: 'Save your data first!',
+    warnSaveText: 'Click Save Data now to download a backup (JSON + TXT) before deleting.',
+    warnSaveBtn: 'Save backup now',
+    warnCancel: 'Cancel',
+    warnDeleteBtn: 'Delete all data',
+    deletedSuccess: '✅ All data deleted successfully',
+  }
+};
+const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
+
+/* ═══════════════════════════════════════════════════════════
+   أدوات
+   ═══════════════════════════════════════════════════════════ */
+function parseNum(v){ if(v===null||v===undefined) return 0; const n=parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; }
+function fmtWithCommas(n,dec=2){
+  n=Number(n); if(!isFinite(n)) n=0;
+  const neg=n<0; const abs=Math.abs(n);
+  const p=abs.toFixed(dec).split('.');
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return (neg?'-':'')+p.join('.');
+}
+function fmtMoney(usd,dec){
+  const info = curInfo();
+  const d = dec!==undefined ? dec : info.decimals;
+  const converted = usd * info.rate;
+  const s = fmtWithCommas(converted, d);
+  if(currentCurrency === 'USD') return s + ' $';
+  return currentLang === 'ar' ? (s + ' ' + info.symbol) : (info.symbol + ' ' + s);
+}
+function fmtPct(n){ return fmtWithCommas(n,2)+' %'; }
+function baseSymbol(key){ return key && key.includes('__') ? key.split('__')[0] : key; }
+function todayISO(){
+  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  return d.toISOString().slice(0,10);
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   متغيرات من المحفظة
+   ═══════════════════════════════════════════════════════════ */
+let portfolioInvestedAuto = 0;
+let portfolioCurrentValue = 0;
+
+/* ═══════════════════════════════════════════════════════════
+   الإعدادات
+   ═══════════════════════════════════════════════════════════ */
+function saveSettings(){
+  try{
+    localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify({
+      lang: currentLang,
+      currency: currentCurrency,
+      theme: document.body.classList.contains('light-mode') ? 'light' : 'dark',
+      fontScale: fontScale
+    }));
+  }catch(e){}
+}
+function loadSettings(){
+  try{
+    const saved = localStorage.getItem(LS_KEY_SETTINGS);
+    if(saved){
+      const s = JSON.parse(saved);
+      currentLang = s.lang || 'ar';
+      currentCurrency = s.currency || 'USD';
+      fontScale = s.fontScale || 1;
+      if(s.theme === 'light') document.body.classList.add('light-mode');
+    }
+  }catch(e){}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تغيير اللغة
+   ═══════════════════════════════════════════════════════════ */
+function setLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(T[lang][key]) el.textContent = T[lang][key];
+  });
+
+  document.getElementById('btnAr').classList.toggle('active', lang === 'ar');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+
+  renderTable();
+  refreshAllCardValues();
+  updateAllTotals();
+  updateThemeIcon();
+  updateCurrencyFab();
+  saveSettings();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تغيير العملة
+   ═══════════════════════════════════════════════════════════ */
+function toggleCurrency(){
+  currentCurrency = currentCurrency === 'USD' ? 'BHD' : 'USD';
+  updateCurrencyFab();
+  refreshAllCardValues();
+  updateAllTotals();
+  saveSettings();
+}
+function updateCurrencyFab(){
+  const fab = document.getElementById('fabCurrency');
+  if(!fab) return;
+  fab.textContent = '';
+  fab.appendChild(document.createTextNode(currentCurrency === 'USD' ? '💵' : '🇧🇭'));
+  const tip = document.createElement('span');
+  tip.className = 'tooltip';
+  tip.id = 'tipCurrency';
+  tip.textContent = tr('tipCurrency');
+  fab.appendChild(tip);
+}
+function refreshAllCardValues(){
+  if(portfolioCurrentValue >= 0){
+    const pnl = portfolioCurrentValue - portfolioInvestedAuto;
+    const pnlPct = portfolioInvestedAuto > 0 ? (pnl / portfolioInvestedAuto) * 100 : 0;
+
+    document.getElementById('totalPnl').textContent = fmtMoney(pnl, 2);
+    document.getElementById('totalPnlPct').textContent = fmtPct(pnlPct);
+    document.getElementById('totalCurrent').textContent = fmtMoney(portfolioCurrentValue, 2);
+
+    const pnlEl = document.getElementById('totalPnl');
+    pnlEl.classList.remove('green','red','gold');
+    pnlEl.classList.add(pnl > 0 ? 'green' : (pnl < 0 ? 'red' : 'gold'));
+
+    const pctEl = document.getElementById('totalPnlPct');
+    pctEl.classList.remove('green','red','gold');
+    pctEl.classList.add(pnlPct > 0 ? 'green' : (pnlPct < 0 ? 'red' : 'gold'));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تبديل الثيم
+   ═══════════════════════════════════════════════════════════ */
+function toggleTheme(){
+  document.body.classList.toggle('light-mode');
+  updateThemeIcon();
+  saveSettings();
+}
+function updateThemeIcon(){
+  const fab = document.getElementById('fabTheme');
+  if(!fab) return;
+  const isLight = document.body.classList.contains('light-mode');
+  fab.textContent = '';
+  fab.appendChild(document.createTextNode(isLight ? '☀️' : '🌙'));
+  const tip = document.createElement('span');
+  tip.className = 'tooltip';
+  tip.id = 'tipTheme';
+  tip.textContent = tr('tipTheme');
+  fab.appendChild(tip);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تكبير / تصغير الخط
+   ═══════════════════════════════════════════════════════════ */
+function changeFontSize(delta){
+  fontScale = Math.max(0.7, Math.min(1.6, fontScale + delta));
+  document.body.style.fontSize = (14 * fontScale) + 'px';
+  document.getElementById('fontVal').textContent = Math.round(fontScale * 100) + '%';
+  saveSettings();
+}
+function applyFontSize(){
+  document.body.style.fontSize = (14 * fontScale) + 'px';
+  document.getElementById('fontVal').textContent = Math.round(fontScale * 100) + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   حفظ المعلومات — JSON + TXT
+   ═══════════════════════════════════════════════════════════ */
+function saveDataToFile(){
+  try{
+    const now = new Date();
+    const ts = now.toISOString().slice(0,19).replace(/[:T]/g,'-');
+    const themeName = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+
+    // JSON
+    const jsonData = {
+      app: 'Muharraqi Summary Page',
+      version: '1.1',
+      savedAt: now.toISOString(),
+      settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale },
+      table: tableRows,
+      portfolioData: localStorage.getItem(LS_KEY_DATA) || null
+    };
+    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], {type:'application/json;charset=utf-8'});
+    downloadFile(jsonBlob, 'muharraqi_summary_' + ts + '.json');
+
+    // TXT
+    const line = '═══════════════════════════════════════════════════';
+    let txt = '';
+    txt += line + '\n📊 ملخص المحفظة — Muharraqi Pro Edition\n' + line + '\n';
+    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.1\n\n';
+    txt += '═══ ⚙️ الإعدادات ═══\n';
+    txt += 'language=' + currentLang + '\ncurrency=' + currentCurrency + '\n';
+    txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n\n';
+    txt += '═══ 📊 ملخص البطاقات ═══\n';
+    txt += 'إجمالي المبلغ المستثمر (المحفظة): ' + (document.getElementById('totalInvested')?.textContent || '—') + '\n';
+    txt += 'إجمالي الربح / الخسارة $        : ' + (document.getElementById('totalPnl')?.textContent || '—') + '\n';
+    txt += 'إجمالي القيمة الحالية           : ' + (document.getElementById('totalCurrent')?.textContent || '—') + '\n';
+    txt += 'إجمالي الربح / الخسارة %       : ' + (document.getElementById('totalPnlPct')?.textContent || '—') + '\n';
+    txt += 'الفرق (المستثمر − القيمة)       : ' + (document.getElementById('differenceValue')?.textContent || '—') + '\n\n';
+    txt += '═══ 📋 جدول الإضافات ═══\n';
+    txt += '# | الاسم | المبلغ | التاريخ | الملاحظات\n';
+    txt += '───────────────────────────────────────────────────\n';
+    if(tableRows.length === 0){
+      txt += '(لا توجد صفوف)\n';
+    } else {
+      tableRows.forEach((r, i) => {
+        const name   = (r.name   || '').toString().replace(/\n/g, ' ').trim() || '-';
+        const amount = (r.amount || '').toString().replace(/\n/g, ' ').trim() || '-';
+        const date   = (r.date   || '').toString().replace(/\n/g, ' ').trim() || '-';
+        const note   = (r.note   || '').toString().replace(/\n/g, ' ').trim() || '-';
+        txt += (i + 1) + ' | ' + name + ' | ' + amount + ' | ' + date + ' | ' + note + '\n';
+      });
+      const total = tableRows.reduce((s, r) => s + parseNum(r.amount), 0);
+      txt += '───────────────────────────────────────────────────\n';
+      txt += 'المجموع: ' + total.toFixed(2) + ' $\n';
+    }
+    txt += '\n' + line + '\nنسألكم الدعاء بظهر الغيب 🤲\n' + line + '\n';
+
+    const txtBlob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    downloadFile(txtBlob, 'muharraqi_summary_' + ts + '.txt');
+
+    showToast(tr('saveSuccess'), 'success');
+  }catch(e){
+    console.warn(e);
+    showToast('❌ فشل في الحفظ', 'error');
+  }
+}
+
+function downloadFile(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   استرجاع المعلومات
+   ═══════════════════════════════════════════════════════════ */
+document.getElementById('loadFileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(data.table){
+        localStorage.setItem(TABLE_KEY, JSON.stringify(data.table));
+        tableRows = data.table;
+      }
+      if(data.settings){
+        if(data.settings.lang) currentLang = data.settings.lang;
+        if(data.settings.currency) currentCurrency = data.settings.currency;
+        if(data.settings.fontScale) fontScale = data.settings.fontScale;
+        if(data.settings.theme === 'light') document.body.classList.add('light-mode');
+        else document.body.classList.remove('light-mode');
+      }
+      if(data.portfolioData) localStorage.setItem(LS_KEY_DATA, data.portfolioData);
+
+      setLang(currentLang);
+      applyFontSize();
+      updateCurrencyFab();
+      updateThemeIcon();
+      renderTable();
+      refresh();
+      showToast(tr('loadSuccess'), 'success');
+    }catch(err){
+      console.warn(err);
+      showToast(tr('loadError'), 'error');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   نافذة تحذير المسح — زر تأكيد مباشر
+   ═══════════════════════════════════════════════════════════ */
+function openDeleteWarning(){
+  document.getElementById('deleteWarningModal').classList.add('active');
+}
+
+function closeDeleteWarning(){
+  document.getElementById('deleteWarningModal').classList.remove('active');
+}
+
+function executeDeleteAll(){
+  // حذف مفاتيح هذه الصفحة فقط (بيانات المحفظة الأصلية تبقى آمنة)
+  localStorage.removeItem(TABLE_KEY);
+  localStorage.removeItem(LS_KEY_SETTINGS);
+
+  // إعادة تعيين الحالة
+  tableRows = [];
+  currentLang = 'ar';
+  currentCurrency = 'USD';
+  fontScale = 1;
+  document.body.classList.remove('light-mode');
+  document.body.style.fontSize = '14px';
+
+  loadTable();
+  renderTable();
+  applyFontSize();
+  setLang(currentLang);
+  updateCurrencyFab();
+  updateThemeIcon();
+  refresh();
+
+  closeDeleteWarning();
+  showToast(tr('deletedSuccess'), 'success');
+}
+
+// إغلاق عند الضغط على الخلفية
+document.getElementById('deleteWarningModal').addEventListener('click', function(e){
+  if(e.target === this) closeDeleteWarning();
+});
+
+// ESC للإغلاق
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    const modal = document.getElementById('deleteWarningModal');
+    if(modal.classList.contains('active')) closeDeleteWarning();
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   Toast
+   ═══════════════════════════════════════════════════════════ */
+function showToast(msg, type){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+    background:${type === 'error' ? '#dc2626' : '#059669'};
+    color:#fff;padding:14px 28px;border-radius:12px;
+    font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.3);
+    z-index:99999;font-size:.95em;opacity:0;
+    transition:opacity .3s, transform .3s;
+    max-width:90%;text-align:center;
+  `;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>{ t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(-8px)'; });
+  setTimeout(()=>{
+    t.style.opacity = '0';
+    setTimeout(()=>t.remove(), 400);
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   إدارة الجدول
+   ═══════════════════════════════════════════════════════════ */
+let tableRows = [];
+
+function loadTable(){
+  try{
+    const saved = localStorage.getItem(TABLE_KEY);
+    if(saved){
+      const parsed = JSON.parse(saved);
+      if(Array.isArray(parsed)) tableRows = parsed;
+    }
+  }catch(e){ tableRows = []; }
+
+  if(tableRows.length === 0){
+    tableRows.push({ id: Date.now(), name:'', amount:'', date: todayISO(), note:'' });
+  }
+}
+function saveTable(){
+  try{ localStorage.setItem(TABLE_KEY, JSON.stringify(tableRows)); }catch(e){}
+}
+
+function renderTable(){
+  const tbody = document.getElementById('tableBody2');
+  if(!tbody) return;
+
+  if(tableRows.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+      <span class="icon">📋</span>
+      ${tr('emptyState')}
+    </td></tr>`;
+    updateAllTotals();
+    return;
+  }
+
+  tbody.innerHTML = tableRows.map((row, idx) => `
+    <tr data-id="${row.id}">
+      <td class="serial">${idx + 1}</td>
+      <td><input type="text" value="${escapeHtml(row.name||'')}" placeholder="..." oninput="updateRowIn(${row.id}, 'name', this.value)"></td>
+      <td><input type="number" value="${row.amount||''}" placeholder="0.00" step="any" min="0" oninput="updateRowIn(${row.id}, 'amount', this.value)"></td>
+      <td><input type="date" value="${row.date||''}" onchange="updateRowIn(${row.id}, 'date', this.value)"></td>
+      <td><textarea placeholder="..." oninput="updateRowIn(${row.id}, 'note', this.value)">${escapeHtml(row.note||'')}</textarea></td>
+      <td class="actions"><button class="btn red" onclick="deleteRowFrom(${row.id})" title="حذف">🗑️</button></td>
+    </tr>
+  `).join('');
+
+  updateAllTotals();
+}
+
+function updateRowIn(id, field, value){
+  const row = tableRows.find(r => r.id === id);
+  if(!row) return;
+  row[field] = value;
+  saveTable();
+  if(field === 'amount') updateAllTotals();
+}
+
+function addRowTo(){
+  tableRows.push({ id: Date.now() + Math.floor(Math.random()*1000), name:'', amount:'', date: todayISO(), note:'' });
+  saveTable();
+  renderTable();
+  setTimeout(()=>{
+    const tbody = document.getElementById('tableBody2');
+    const rows = tbody.querySelectorAll('tr');
+    const lastRow = rows[rows.length-1];
+    if(lastRow){
+      const inp = lastRow.querySelector('input');
+      if(inp) inp.focus();
+      lastRow.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }, 100);
+}
+
+function deleteRowFrom(id){
+  if(!confirm(tr('confirmDelete'))) return;
+  tableRows = tableRows.filter(r => r.id !== id);
+  saveTable();
+  renderTable();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تحديث المجاميع
+   ═══════════════════════════════════════════════════════════ */
+function updateAllTotals(){
+  const manualTotal = tableRows.reduce((s,r) => s + parseNum(r.amount), 0);
+  const totalPortfolioInvested = portfolioInvestedAuto + manualTotal;
+
+  const footEl = document.getElementById('footTotal2');
+  if(footEl) footEl.textContent = fmtMoney(manualTotal, 2);
+
+  const invEl = document.getElementById('totalInvested');
+  if(invEl) invEl.textContent = fmtMoney(totalPortfolioInvested, 2);
+
+  const hintAuto = document.getElementById('hintAuto');
+  const hintManual = document.getElementById('hintManual');
+  if(hintAuto) hintAuto.textContent = fmtMoney(portfolioInvestedAuto, 2);
+  if(hintManual) hintManual.textContent = fmtMoney(manualTotal, 2);
+
+  const diffEl = document.getElementById('differenceValue');
+  if(diffEl){
+    const diff = totalPortfolioInvested - portfolioCurrentValue;
+    diffEl.textContent = fmtMoney(diff, 2);
+    diffEl.classList.remove('green','red','purple','neutral');
+    if(Math.abs(diff) < 0.01) diffEl.classList.add('neutral');
+    else if(diff > 0) diffEl.classList.add('red');
+    else diffEl.classList.add('green');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   حساب ملخص المحفظة
+   ═══════════════════════════════════════════════════════════ */
+function calcSummaryPrices(prices){
+  const saved = localStorage.getItem(LS_KEY_DATA);
+  if(!saved) return {invested:0,current:0,pnl:0,pnlPct:0,coins:0};
+  let parsed;
+  try{ parsed = JSON.parse(saved); }catch(e){ return {invested:0,current:0,pnl:0,pnlPct:0,coins:0}; }
+  const coins = parsed?.coins || {};
+  let totalInvested=0, totalCurrent=0, totalPnl=0, coinCount=0;
+
+  Object.keys(coins).forEach(symbol=>{
+    const d = coins[symbol];
+    if(!d) return;
+    const marketPrice = prices[symbol] || 0;
+    const initPrice = parseNum(d.initialEntryPrice);
+    const initAmt   = parseNum(d.initialAmountDollars);
+    const initQty   = initPrice>0 ? initAmt/initPrice : 0;
+    const initSales = d.initialSales || [];
+    const initSold  = initSales.reduce((s,x)=>s+parseNum(x.qty),0);
+    const initRemain= Math.max(0, initQty-initSold);
+
+    let coinQty = initRemain;
+    let coinInvested = initQty>0 ? initAmt*(initRemain/initQty) : 0;
+
+    (d.repurchases||[]).forEach(rp=>{
+      const savedAmt = parseNum(rp.savedAmount);
+      const rpAmt    = parseNum(rp.amount);
+      const isSaved  = savedAmt>0.0001 && Math.abs(rpAmt-savedAmt)<=0.001;
+      if(!isSaved) return;
+      const rpPrice = parseNum(rp.price);
+      if(rpPrice<=0) return;
+      const rpQty = rpAmt/rpPrice;
+      const sold  = (rp.sales||[]).reduce((s,x)=>s+parseNum(x.qty),0);
+      const remain= Math.max(0, rpQty-sold);
+      if(remain>0){
+        coinQty += remain;
+        coinInvested += rpAmt*(remain/rpQty);
+      }
+    });
+
+    if(coinQty<=0.00000001) return;
+    coinCount++;
+    const currentVal = coinQty*marketPrice;
+    totalInvested += coinInvested;
+    totalCurrent  += currentVal;
+    totalPnl      += (currentVal - coinInvested);
+  });
+
+  const totalPnlPct = totalInvested>0 ? (totalPnl/totalInvested)*100 : 0;
+  return {invested:totalInvested, current:totalCurrent, pnl:totalPnl, pnlPct:totalPnlPct, coins:coinCount};
+}
+
+async function fetchPrice(symbol){
+  const base = baseSymbol(symbol);
+  try{
+    const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+base);
+    if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p)) return p; }
+  }catch(e){}
+  const endpoints = [
+    {url:'https://api.mexc.com/api/v3/ticker/price?symbol='+base, get:d=>d.price},
+    {url:'https://api.gateio.ws/api/v4/spot/tickers?currency_pair='+base.replace('USDT','_USDT'), get:d=>d[0]?.last},
+    {url:'https://www.okx.com/api/v5/market/ticker?instId='+base.replace('USDT','-USDT'), get:d=>d.data?.[0]?.last},
+    {url:'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol='+base.replace('USDT','-USDT'), get:d=>d.data?.price},
+    {url:'https://api.bybit.com/v5/market/tickers?category=spot&symbol='+base, get:d=>d.result?.list?.[0]?.lastPrice}
+  ];
+  for(const e of endpoints){
+    try{
+      const r = await fetch(MY_PROXY_URL+'?url='+encodeURIComponent(e.url));
+      if(!r.ok) continue;
+      const d = await r.json();
+      const p = parseFloat(e.get(d));
+      if(!isNaN(p)) return p;
+    }catch(e){}
+  }
+  return 0;
+}
+
+async function refresh(){
+  const status = document.getElementById('status');
+  status.className='status';
+  status.innerHTML = '<span class="spinner"></span> ' + tr('loadingMsg');
+
+  const saved = localStorage.getItem(LS_KEY_DATA);
+  if(!saved){
+    status.className='status err';
+    status.textContent= tr('statusNoData');
+    portfolioInvestedAuto = 0;
+    portfolioCurrentValue = 0;
+    refreshAllCardValues();
+    updateAllTotals();
+    return;
+  }
+
+  let coins = {};
+  try{ coins = JSON.parse(saved)?.coins || {}; }catch(e){}
+
+  const symbols = Object.keys(coins);
+  if(symbols.length===0){
+    status.className='status err';
+    status.textContent= tr('statusNoCoins');
+    portfolioInvestedAuto = 0;
+    portfolioCurrentValue = 0;
+    refreshAllCardValues();
+    updateAllTotals();
+    return;
+  }
+
+  const prices = {};
+  const CONC=4;
+  for(let i=0;i<symbols.length;i+=CONC){
+    const batch = symbols.slice(i,i+CONC);
+    const results = await Promise.all(batch.map(s=>fetchPrice(s)));
+    batch.forEach((s,idx)=>{ prices[s]=results[idx]; });
+  }
+
+  const r = calcSummaryPrices(prices);
+  portfolioInvestedAuto = r.invested;
+  portfolioCurrentValue = r.current;
+
+  refreshAllCardValues();
+  updateAllTotals();
+
+  status.className='status ok';
+  status.textContent = `✅ ${tr('statusOk')} ${r.coins} — ${tr('at')} ${new Date().toLocaleTimeString(currentLang === 'ar' ? 'ar-EG' : 'en-US')}`;
+}
+
+function backToMain(){
+  location.href = 'index.html';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   تشغيل أولي
+   ═══════════════════════════════════════════════════════════ */
+(function init(){
+  loadSettings();
+  applyFontSize();
+  setLang(currentLang);
+  updateCurrencyFab();
+  updateThemeIcon();
+  loadTable();
+  renderTable();
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script>
+</body>
+</html>
