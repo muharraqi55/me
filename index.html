@@ -112,6 +112,14 @@ body[dir="ltr"] .floating-bar{right:auto;left:18px}
   border-color:var(--primary);
   color:var(--primary);
 }
+.fab.refresh{
+  border-color:rgba(77,171,247,.5);
+  color:var(--primary);
+}
+.fab.refresh:hover{
+  border-color:var(--primary);
+  background:linear-gradient(135deg,rgba(77,171,247,.15),rgba(151,117,250,.15));
+}
 .fab.danger{border-color:rgba(220,38,38,.5)}
 .fab.danger:hover{border-color:var(--red);color:var(--red)}
 .fab .tooltip{
@@ -484,6 +492,12 @@ table.invest-table tfoot td .foot-value{
 
 <!-- ═══════ الأزرار المنبثقة ═══════ -->
 <div class="floating-bar">
+  <!-- ✅ زر تحديث الأسعار (جديد) -->
+  <button class="fab refresh" id="fabRefresh" onclick="handleRefreshClick()">
+    🔄
+    <span class="tooltip" id="tipRefresh">تحديث الأسعار الآن</span>
+  </button>
+
   <button class="fab" id="fabCurrency" onclick="toggleCurrency()">
     💵
     <span class="tooltip" id="tipCurrency">تبديل العملة (دولار ⇄ دينار)</span>
@@ -572,7 +586,6 @@ table.invest-table tfoot td .foot-value{
   </div>
 
   <div class="toolbar">
-    <button class="btn" onclick="refresh()" data-i18n="btnRefresh">🔄 تحديث الآن</button>
     <button class="btn ghost" onclick="backToMain()" data-i18n="btnBack">↩️ الصفحة الرئيسية</button>
   </div>
 
@@ -702,7 +715,6 @@ const T = {
     title: '📊 ملخص المحفظة',
     subtitle: 'Muharraqi Pro Edition — صفحة مستقلة تقرأ نفس البيانات',
     loading: 'جاري تحميل البيانات...',
-    btnRefresh: '🔄 تحديث الآن',
     btnBack: '↩️ الصفحة الرئيسية',
     btnAddRow: '➕ إضافة صف جديد',
     cardInvested: '💼 إجمالي المبلغ المستثمر (المحفظة)',
@@ -721,6 +733,7 @@ const T = {
     footLabel: '➕ مجموع الإضافات اليدوية',
     footerText: 'نسألكم الدعاء بظهر الغيب 🤲 — جميع البيانات محفوظة محلياً في متصفحك',
     footerBack: '← العودة للصفحة الرئيسية',
+    tipRefresh: 'تحديث الأسعار الآن',
     tipCurrency: 'تبديل العملة (دولار ⇄ دينار)',
     tipTheme: 'الوضع الليلي / النهاري',
     tipSave: 'حفظ المعلومات',
@@ -736,6 +749,8 @@ const T = {
     saveSuccess: '✅ تم حفظ الملفين (JSON + TXT)',
     loadSuccess: '✅ تم استرجاع البيانات بنجاح!',
     loadError: '❌ فشل في استرجاع البيانات',
+    refreshSuccess: '✅ تم تحديث الأسعار!',
+    refreshError: '❌ فشل في التحديث',
     warnTitle: 'تحذير هام جداً!',
     warnSubtitle: 'عملية المسح لا يمكن التراجع عنها',
     warnWillDelete: 'سيتم حذف نهائياً:',
@@ -757,7 +772,6 @@ const T = {
     title: '📊 Portfolio Summary',
     subtitle: 'Muharraqi Pro Edition — Independent page reads same data',
     loading: 'Loading data...',
-    btnRefresh: '🔄 Refresh Now',
     btnBack: '↩️ Main Page',
     btnAddRow: '➕ Add New Row',
     cardInvested: '💼 Total Invested Amount (Portfolio)',
@@ -776,6 +790,7 @@ const T = {
     footLabel: '➕ Manual Additions Total',
     footerText: 'Please remember us in your prayers 🤲 — All data stored locally',
     footerBack: '← Back to Main Page',
+    tipRefresh: 'Refresh prices now',
     tipCurrency: 'Switch currency (USD ⇄ BHD)',
     tipTheme: 'Dark / Light mode',
     tipSave: 'Save data',
@@ -791,6 +806,8 @@ const T = {
     saveSuccess: '✅ Both files saved (JSON + TXT)',
     loadSuccess: '✅ Data loaded successfully!',
     loadError: '❌ Failed to load data',
+    refreshSuccess: '✅ Prices updated!',
+    refreshError: '❌ Failed to refresh',
     warnTitle: 'Very Important Warning!',
     warnSubtitle: 'Deletion cannot be undone',
     warnWillDelete: 'Will be permanently deleted:',
@@ -895,7 +912,7 @@ function setLang(lang){
   updateAllTotals();
   updateThemeIcon();
   updateCurrencyFab();
-  renderCryptoPriceCards();   // ✅ تحديث أسعار العملات عند تبديل اللغة
+  renderCryptoPriceCards();
   saveSettings();
 }
 
@@ -907,7 +924,7 @@ function toggleCurrency(){
   updateCurrencyFab();
   refreshAllCardValues();
   updateAllTotals();
-  renderCryptoPriceCards();   // ✅ تحديث أسعار العملات عند تبديل العملة
+  renderCryptoPriceCards();
   saveSettings();
 }
 function updateCurrencyFab(){
@@ -976,7 +993,38 @@ function applyFontSize(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ✅ بطاقات أسعار العملات — تتأثر بالعملة المختارة
+   ✅ زر تحديث الأسعار (المنبثق)
+   ═══════════════════════════════════════════════════════════ */
+async function handleRefreshClick(){
+  const fab = document.getElementById('fabRefresh');
+  if(!fab) return;
+
+  if(fab.dataset.loading === '1') return;
+  fab.dataset.loading = '1';
+
+  fab.style.transition = 'transform .8s ease';
+  fab.style.transform = 'rotate(360deg)';
+
+  try{
+    await Promise.all([
+      refresh(),
+      updateCryptoPriceCards()
+    ]);
+    showToast(tr('refreshSuccess'), 'success');
+  }catch(e){
+    console.warn(e);
+    showToast(tr('refreshError'), 'error');
+  }
+
+  setTimeout(() => {
+    fab.style.transform = '';
+    fab.dataset.loading = '0';
+    setTimeout(() => { fab.style.transition = ''; }, 300);
+  }, 800);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   بطاقات أسعار العملات
    ═══════════════════════════════════════════════════════════ */
 const COIN_PRICES = [
   { symbol: 'BTCUSDT',  id: 'BTC',  key: 'priceBTC'  },
@@ -984,14 +1032,12 @@ const COIN_PRICES = [
   { symbol: 'XRPUSDT',  id: 'XRP',  key: 'priceXRP'  }
 ];
 
-/* تخزين الأسعار الأصلية بالدولار */
 let cryptoCardPrices = {
   BTC:  { price: null, change: null },
   DOGE: { price: null, change: null },
   XRP:  { price: null, change: null }
 };
 
-/* تنسيق السعر مع تحويل تلقائي للعملة */
 function formatCryptoPrice(usdPrice){
   if(isNaN(usdPrice) || usdPrice <= 0) return '—';
 
@@ -1017,7 +1063,6 @@ function formatCryptoPrice(usdPrice){
     : info.symbol + ' ' + formatted;
 }
 
-/* رسم البطاقات — يُستدعى عند تغيير العملة/اللغة/الأسعار */
 function renderCryptoPriceCards(){
   const COINS = ['BTC','DOGE','XRP'];
   COINS.forEach(id => {
@@ -1044,7 +1089,6 @@ function renderCryptoPriceCards(){
 }
 
 async function fetchCryptoCardPrice(symbol){
-  // Binance مباشرة
   try{
     const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=' + symbol);
     if(r.ok){
@@ -1056,7 +1100,6 @@ async function fetchCryptoCardPrice(symbol){
     }
   }catch(e){}
 
-  // MEXC عبر البروكسي
   try{
     const r = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(
       'https://api.mexc.com/api/v3/ticker/24hr?symbol=' + symbol
@@ -1097,7 +1140,6 @@ function saveDataToFile(){
     const ts = now.toISOString().slice(0,19).replace(/[:T]/g,'-');
     const themeName = document.body.classList.contains('light-mode') ? 'light' : 'dark';
 
-    // JSON
     const jsonData = {
       app: 'Muharraqi Summary Page',
       version: '1.1',
@@ -1109,7 +1151,6 @@ function saveDataToFile(){
     const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], {type:'application/json;charset=utf-8'});
     downloadFile(jsonBlob, 'muharraqi_summary_' + ts + '.json');
 
-    // TXT
     const line = '═══════════════════════════════════════════════════';
     let txt = '';
     txt += line + '\n📊 ملخص المحفظة — Muharraqi Pro Edition\n' + line + '\n';
