@@ -202,6 +202,46 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ═══════════════════════════════════════════════════════════
+   بطاقات أسعار العملات
+   ═══════════════════════════════════════════════════════════ */
+.prices-grid{
+  display:grid;gap:18px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  margin-bottom:30px;
+}
+.prices-grid .card{text-align:center}
+.prices-grid .card::before{height:5px}
+.card.btc::before{background:linear-gradient(90deg,#f7931a,#ffb347)}
+.card.doge::before{background:linear-gradient(90deg,#c2a633,#e0c94d)}
+.card.xrp::before{background:linear-gradient(90deg,#0091ff,#4dabf7)}
+.card.btc .label{color:#f7931a}
+.card.doge .label{color:#c2a633}
+.card.xrp .label{color:#4dabf7}
+.card .value.btc-color{color:#f7931a}
+.card .value.doge-color{color:#c2a633}
+.card .value.xrp-color{color:#0091ff}
+.card .value.price-value{
+  font-size:1.9em;
+  letter-spacing:.5px;
+  text-align:center;
+}
+.card .coin-icon{
+  width:42px;height:42px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:1.4em;font-weight:800;margin-bottom:10px;
+  border:2px solid var(--border);
+}
+.card.btc .coin-icon{background:rgba(247,147,26,.15);color:#f7931a;border-color:#f7931a}
+.card.doge .coin-icon{background:rgba(194,166,51,.15);color:#c2a633;border-color:#c2a633}
+.card.xrp .coin-icon{background:rgba(0,145,255,.15);color:#0091ff;border-color:#0091ff}
+.price-loading{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .8s linear infinite;
+  vertical-align:middle;
+}
+
 .table-section{
   background:linear-gradient(160deg,var(--card),var(--card2));
   border:1px solid var(--border);border-radius:16px;
@@ -365,7 +405,6 @@ table.invest-table tfoot td .foot-value{
   transform:translateY(-2px);
   box-shadow:0 6px 20px rgba(32,201,151,.55);
 }
-
 .warning-actions{
   display:grid;
   grid-template-columns:1fr 1.4fr;
@@ -470,7 +509,7 @@ table.invest-table tfoot td .foot-value{
 <input type="file" id="loadFileInput" accept=".json" style="display:none">
 
 <!-- ═══════════════════════════════════════════════════════════
-     نافذة تحذير المسح — زر تأكيد مباشر
+     نافذة تحذير المسح
      ═══════════════════════════════════════════════════════════ -->
 <div class="warning-modal-overlay" id="deleteWarningModal">
   <div class="warning-modal" onclick="event.stopPropagation()">
@@ -537,7 +576,35 @@ table.invest-table tfoot td .foot-value{
     <button class="btn ghost" onclick="backToMain()" data-i18n="btnBack">↩️ الصفحة الرئيسية</button>
   </div>
 
-  <!-- البطاقات -->
+  <!-- بطاقات أسعار العملات -->
+  <div class="prices-grid">
+    <div class="card btc">
+      <div class="coin-icon">₿</div>
+      <div class="label" data-i18n="priceBTC">سعر BTCUSDT</div>
+      <div class="value btc-color price-value" id="priceBTC">
+        <span class="price-loading"></span>
+      </div>
+      <div class="hint" id="changeBTC">—</div>
+    </div>
+    <div class="card doge">
+      <div class="coin-icon">Ð</div>
+      <div class="label" data-i18n="priceDOGE">سعر DOGEUSDT</div>
+      <div class="value doge-color price-value" id="priceDOGE">
+        <span class="price-loading"></span>
+      </div>
+      <div class="hint" id="changeDOGE">—</div>
+    </div>
+    <div class="card xrp">
+      <div class="coin-icon">✕</div>
+      <div class="label" data-i18n="priceXRP">سعر XRPUSDT</div>
+      <div class="value xrp-color price-value" id="priceXRP">
+        <span class="price-loading"></span>
+      </div>
+      <div class="hint" id="changeXRP">—</div>
+    </div>
+  </div>
+
+  <!-- البطاقات الخمس -->
   <div class="grid">
     <div class="card purple">
       <div class="label" data-i18n="cardInvested">💼 إجمالي المبلغ المستثمر (المحفظة)</div>
@@ -681,6 +748,9 @@ const T = {
     warnCancel: 'إلغاء',
     warnDeleteBtn: 'مسح كل البيانات',
     deletedSuccess: '✅ تم مسح جميع البيانات بنجاح',
+    priceBTC: 'سعر BTCUSDT',
+    priceDOGE: 'سعر DOGEUSDT',
+    priceXRP: 'سعر XRPUSDT',
   },
   en: {
     brand: 'Portfolio Summary',
@@ -733,6 +803,9 @@ const T = {
     warnCancel: 'Cancel',
     warnDeleteBtn: 'Delete all data',
     deletedSuccess: '✅ All data deleted successfully',
+    priceBTC: 'BTCUSDT Price',
+    priceDOGE: 'DOGEUSDT Price',
+    priceXRP: 'XRPUSDT Price',
   }
 };
 const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
@@ -822,6 +895,7 @@ function setLang(lang){
   updateAllTotals();
   updateThemeIcon();
   updateCurrencyFab();
+  renderCryptoPriceCards();   // ✅ تحديث أسعار العملات عند تبديل اللغة
   saveSettings();
 }
 
@@ -833,6 +907,7 @@ function toggleCurrency(){
   updateCurrencyFab();
   refreshAllCardValues();
   updateAllTotals();
+  renderCryptoPriceCards();   // ✅ تحديث أسعار العملات عند تبديل العملة
   saveSettings();
 }
 function updateCurrencyFab(){
@@ -901,6 +976,119 @@ function applyFontSize(){
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ✅ بطاقات أسعار العملات — تتأثر بالعملة المختارة
+   ═══════════════════════════════════════════════════════════ */
+const COIN_PRICES = [
+  { symbol: 'BTCUSDT',  id: 'BTC',  key: 'priceBTC'  },
+  { symbol: 'DOGEUSDT', id: 'DOGE', key: 'priceDOGE' },
+  { symbol: 'XRPUSDT',  id: 'XRP',  key: 'priceXRP'  }
+];
+
+/* تخزين الأسعار الأصلية بالدولار */
+let cryptoCardPrices = {
+  BTC:  { price: null, change: null },
+  DOGE: { price: null, change: null },
+  XRP:  { price: null, change: null }
+};
+
+/* تنسيق السعر مع تحويل تلقائي للعملة */
+function formatCryptoPrice(usdPrice){
+  if(isNaN(usdPrice) || usdPrice <= 0) return '—';
+
+  const info = curInfo();
+  const converted = usdPrice * info.rate;
+
+  let decimals;
+  if(converted >= 1000)      decimals = 2;
+  else if(converted >= 1)    decimals = 4;
+  else if(converted >= 0.01) decimals = 5;
+  else                       decimals = 6;
+
+  const formatted = converted.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+
+  if(currentCurrency === 'USD'){
+    return '$' + formatted;
+  }
+  return currentLang === 'ar'
+    ? formatted + ' ' + info.symbol
+    : info.symbol + ' ' + formatted;
+}
+
+/* رسم البطاقات — يُستدعى عند تغيير العملة/اللغة/الأسعار */
+function renderCryptoPriceCards(){
+  const COINS = ['BTC','DOGE','XRP'];
+  COINS.forEach(id => {
+    const priceEl = document.getElementById('price' + id);
+    const changeEl = document.getElementById('change' + id);
+    if(!priceEl) return;
+
+    const data = cryptoCardPrices[id];
+    if(!data || data.price === null){
+      priceEl.textContent = '—';
+      if(changeEl) changeEl.textContent = '—';
+      return;
+    }
+
+    priceEl.textContent = formatCryptoPrice(data.price);
+
+    if(changeEl && data.change !== null){
+      const sign = data.change >= 0 ? '+' : '';
+      changeEl.textContent = sign + data.change.toFixed(2) + '% (24h)';
+      changeEl.style.color = data.change >= 0 ? 'var(--green)' : 'var(--red)';
+      changeEl.style.fontWeight = '700';
+    }
+  });
+}
+
+async function fetchCryptoCardPrice(symbol){
+  // Binance مباشرة
+  try{
+    const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=' + symbol);
+    if(r.ok){
+      const j = await r.json();
+      return {
+        price: parseFloat(j.lastPrice),
+        change: parseFloat(j.priceChangePercent)
+      };
+    }
+  }catch(e){}
+
+  // MEXC عبر البروكسي
+  try{
+    const r = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(
+      'https://api.mexc.com/api/v3/ticker/24hr?symbol=' + symbol
+    ));
+    if(r.ok){
+      const j = await r.json();
+      return {
+        price: parseFloat(j.lastPrice),
+        change: parseFloat(j.priceChangePercent)
+      };
+    }
+  }catch(e){}
+
+  return null;
+}
+
+async function updateCryptoPriceCards(){
+  for(const coin of COIN_PRICES){
+    const data = await fetchCryptoCardPrice(coin.symbol);
+    if(data && !isNaN(data.price)){
+      cryptoCardPrices[coin.id] = {
+        price: data.price,
+        change: isNaN(data.change) ? null : data.change
+      };
+    } else {
+      cryptoCardPrices[coin.id] = { price: null, change: null };
+    }
+  }
+  renderCryptoPriceCards();
+}
+
+/* ═══════════════════════════════════════════════════════════
    حفظ المعلومات — JSON + TXT
    ═══════════════════════════════════════════════════════════ */
 function saveDataToFile(){
@@ -935,6 +1123,10 @@ function saveDataToFile(){
     txt += 'إجمالي القيمة الحالية           : ' + (document.getElementById('totalCurrent')?.textContent || '—') + '\n';
     txt += 'إجمالي الربح / الخسارة %       : ' + (document.getElementById('totalPnlPct')?.textContent || '—') + '\n';
     txt += 'الفرق (المستثمر − القيمة)       : ' + (document.getElementById('differenceValue')?.textContent || '—') + '\n\n';
+    txt += '═══ 💰 أسعار العملات ═══\n';
+    txt += 'BTCUSDT  : ' + (document.getElementById('priceBTC')?.textContent || '—') + '  ' + (document.getElementById('changeBTC')?.textContent || '') + '\n';
+    txt += 'DOGEUSDT : ' + (document.getElementById('priceDOGE')?.textContent || '—') + '  ' + (document.getElementById('changeDOGE')?.textContent || '') + '\n';
+    txt += 'XRPUSDT  : ' + (document.getElementById('priceXRP')?.textContent || '—') + '  ' + (document.getElementById('changeXRP')?.textContent || '') + '\n\n';
     txt += '═══ 📋 جدول الإضافات ═══\n';
     txt += '# | الاسم | المبلغ | التاريخ | الملاحظات\n';
     txt += '───────────────────────────────────────────────────\n';
@@ -1013,22 +1205,18 @@ document.getElementById('loadFileInput').addEventListener('change', function(e){
 });
 
 /* ═══════════════════════════════════════════════════════════
-   نافذة تحذير المسح — زر تأكيد مباشر
+   نافذة تحذير المسح
    ═══════════════════════════════════════════════════════════ */
 function openDeleteWarning(){
   document.getElementById('deleteWarningModal').classList.add('active');
 }
-
 function closeDeleteWarning(){
   document.getElementById('deleteWarningModal').classList.remove('active');
 }
-
 function executeDeleteAll(){
-  // حذف مفاتيح هذه الصفحة فقط (بيانات المحفظة الأصلية تبقى آمنة)
   localStorage.removeItem(TABLE_KEY);
   localStorage.removeItem(LS_KEY_SETTINGS);
 
-  // إعادة تعيين الحالة
   tableRows = [];
   currentLang = 'ar';
   currentCurrency = 'USD';
@@ -1048,12 +1236,10 @@ function executeDeleteAll(){
   showToast(tr('deletedSuccess'), 'success');
 }
 
-// إغلاق عند الضغط على الخلفية
 document.getElementById('deleteWarningModal').addEventListener('click', function(e){
   if(e.target === this) closeDeleteWarning();
 });
 
-// ESC للإغلاق
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     const modal = document.getElementById('deleteWarningModal');
@@ -1336,7 +1522,9 @@ function backToMain(){
   loadTable();
   renderTable();
   refresh();
+  updateCryptoPriceCards();
   setInterval(refresh, 30000);
+  setInterval(updateCryptoPriceCards, 30000);
 })();
 </script>
 </body>
