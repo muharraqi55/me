@@ -316,6 +316,85 @@ table.invest-table tfoot td .foot-value{
 .empty-state .icon{font-size:2.5em;display:block;margin-bottom:10px;opacity:.5}
 
 /* ═══════════════════════════════════════════════════════════
+   قسم وصلات تهمك
+   ═══════════════════════════════════════════════════════════ */
+.links-section{
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;
+  padding:22px;margin-top:30px;
+  border-top:4px solid var(--primary);
+}
+.links-section h2{
+  font-size:1.15em;color:var(--primary);
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:18px;padding-bottom:14px;
+  border-bottom:2px solid var(--border);
+}
+.links-grid{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.link-card{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 18px;border-radius:12px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  text-decoration:none;color:var(--text);
+  transition:.25s;position:relative;
+  overflow:hidden;
+}
+.link-card::before{
+  content:'';position:absolute;top:0;right:0;bottom:0;
+  width:4px;background:var(--primary);
+  transform:scaleY(0);transform-origin:top;
+  transition:transform .3s;
+}
+.link-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--primary);
+  box-shadow:0 8px 22px rgba(77,171,247,.25);
+}
+.link-card:hover::before{transform:scaleY(1)}
+.link-card .link-icon{
+  width:46px;height:46px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4em;flex-shrink:0;
+  background:rgba(77,171,247,.15);
+  border:1px solid var(--primary);
+  transition:.25s;
+}
+.link-card:hover .link-icon{
+  background:var(--primary);color:#fff;
+  transform:rotate(-6deg) scale(1.08);
+}
+.link-card .link-info{flex:1;min-width:0}
+.link-card .link-title{
+  font-weight:700;font-size:.95em;
+  margin-bottom:5px;color:var(--text);
+}
+.link-card .link-url{
+  font-size:.72em;color:var(--muted);
+  font-family:'Roboto Mono',Consolas,monospace;
+  direction:ltr;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block;opacity:.85;
+}
+.link-card .link-arrow{
+  font-size:1.15em;color:var(--muted);
+  transition:.25s;flex-shrink:0;
+  font-weight:800;
+}
+.link-card:hover .link-arrow{
+  color:var(--primary);transform:translateX(-4px);
+}
+body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
+@media (max-width:560px){
+  .links-grid{grid-template-columns:1fr}
+  .link-card{padding:14px}
+  .link-card .link-icon{width:40px;height:40px;font-size:1.2em}
+}
+
+/* ═══════════════════════════════════════════════════════════
    نافذة تحذير المسح
    ═══════════════════════════════════════════════════════════ */
 .warning-modal-overlay{
@@ -677,6 +756,34 @@ table.invest-table tfoot td .foot-value{
     </div>
   </div>
 
+  <!-- ═══════ وصلات تهمك ═══════ -->
+  <div class="links-section">
+    <h2 data-i18n="linksTitle">🔗 وصلات تهمك</h2>
+    <div class="links-grid">
+
+      <a href="https://www.coinglass.com/pro/futures/LiquidationHeatMapNew?coin=BTC&type=pair"
+         target="_blank" rel="noopener noreferrer" class="link-card">
+        <div class="link-icon">🔥</div>
+        <div class="link-info">
+          <div class="link-title" data-i18n="link1Title">خريطة تصفية العقود الآجلة BTC</div>
+          <span class="link-url">coinglass.com / Liquidation HeatMap</span>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+      <a href="https://www.youtube.com/watch?v=Nw2K3VQ8S1Y"
+         target="_blank" rel="noopener noreferrer" class="link-card">
+        <div class="link-icon">▶️</div>
+        <div class="link-info">
+          <div class="link-title" data-i18n="link2Title">فيديو يوتيوب</div>
+          <span class="link-url">youtube.com / watch</span>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
+
+    </div>
+  </div>
+
   <div class="footer">
     <span data-i18n="footerText">نسألكم الدعاء بظهر الغيب 🤲 — جميع البيانات محفوظة محلياً في متصفحك</span>
     <br>
@@ -766,6 +873,9 @@ const T = {
     priceBTC: 'سعر BTCUSDT',
     priceDOGE: 'سعر DOGEUSDT',
     priceXRP: 'سعر XRPUSDT',
+    linksTitle: '🔗 وصلات تهمك',
+    link1Title: 'خريطة تصفية العقود الآجلة BTC',
+    link2Title: 'فيديو يوتيوب',
   },
   en: {
     brand: 'Portfolio Summary',
@@ -823,6 +933,9 @@ const T = {
     priceBTC: 'BTCUSDT Price',
     priceDOGE: 'DOGEUSDT Price',
     priceXRP: 'XRPUSDT Price',
+    linksTitle: '🔗 Useful Links',
+    link1Title: 'BTC Futures Liquidation Heatmap',
+    link2Title: 'YouTube Video',
   }
 };
 const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
