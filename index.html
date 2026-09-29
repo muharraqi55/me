@@ -789,7 +789,7 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
         <div class="tradingview-widget-container" id="widget-usoil"></div>
       </div>
 
-      <!-- مؤشر الدولار (مع نظام احتياطي ذكي) -->
+      <!-- مؤشر الدولار (مع نظام احتياطي ذكي متعدد المصادر) -->
       <div class="card market-card">
         <div class="card-header">
           <span class="market-icon">🇺🇸</span>
@@ -1236,91 +1236,195 @@ function renderTradingViewWidgets() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   الحل الجذري لمؤشر الدولار (DXY) مع نظام احتياطي ذكي
+   🌍 الحل الجذري لمؤشر الدولار (DXY)
+   نظام متعدد المصادر: Yahoo → open.er-api → Frankfurter
    ═══════════════════════════════════════════════════════════ */
 async function fetchDXYPrice() {
   const dxyContainer = document.getElementById('dxy-custom-widget');
   if (!dxyContainer) return;
   
-  dxyContainer.innerHTML = '<span class="price-loading"></span>';
+  dxyContainer.innerHTML = '<span class="spinner"></span>';
   
+  // ─── المحاولة 1: Yahoo Finance مباشرة عبر البروكسي (DX-Y.NYB) ───
   try {
-    // محاولة الجلب المباشر أولاً
+    const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1d&range=5d';
+    const proxyRes = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(yahooUrl), { cache: 'no-cache' });
+    if (proxyRes.ok) {
+      const yahooData = await proxyRes.json();
+      const result = yahooData?.chart?.result?.[0];
+      if (result) {
+        const meta = result.meta;
+        const currentPrice = meta.regularMarketPrice;
+        const previousClose = meta.chartPreviousClose || meta.previousClose;
+        
+        if (currentPrice && previousClose) {
+          const change = currentPrice - previousClose;
+          const changePercent = (change / previousClose) * 100;
+          renderDXYValue(dxyContainer, currentPrice, change, changePercent, 'Yahoo Finance · DX-Y.NYB');
+          return;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Yahoo Finance DXY fetch failed:', e.message);
+  }
+  
+  // ─── المحاولة 2: حساب DXY من open.er-api.com ───
+  try {
+    const ratesUrl = 'https://open.er-api.com/v6/latest/USD';
+    const ratesRes = await fetch(ratesUrl, { cache: 'no-cache' });
+    if (ratesRes.ok) {
+      const ratesData = await ratesRes.json();
+      if (ratesData.result === 'success' && ratesData.rates) {
+        const rates = ratesData.rates;
+        
+        const dxy = calculateDXY({
+          eurUsd: 1 / rates.EUR,
+          usdJpy: rates.JPY,
+          gbpUsd: 1 / rates.GBP,
+          usdCad: rates.CAD,
+          usdSek: rates.SEK,
+          usdChf: rates.CHF
+        });
+        
+        // محاولة جلب بيانات تاريخية لحساب التغير
+        let previousDXY = dxy;
+        try {
+          const pastDate = new Date();
+          pastDate.setDate(pastDate.getDate() - 7);
+          const pastDateStr = pastDate.toISOString().slice(0, 10);
+          const pastRes = await fetch('https://api.frankfurter.app/' + pastDateStr + '?from=USD', { cache: 'no-cache' });
+          if (pastRes.ok) {
+            const pastData = await pastRes.json();
+            if (pastData.rates && pastData.rates.EUR) {
+              previousDXY = calculateDXY({
+                eurUsd: 1 / pastData.rates.EUR,
+                usdJpy: pastData.rates.JPY,
+                gbpUsd: 1 / pastData.rates.GBP,
+                usdCad: pastData.rates.CAD,
+                usdSek: pastData.rates.SEK,
+                usdChf: pastData.rates.CHF
+              });
+            }
+          }
+        } catch (e) { /* تجاهل */ }
+        
+        const change = dxy - previousDXY;
+        const changePercent = previousDXY > 0 ? (change / previousDXY) * 100 : 0;
+        
+        renderDXYValue(dxyContainer, dxy, change, changePercent, 'open.er-api.com · حساب مباشر');
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('open.er-api.com DXY fetch failed:', e.message);
+  }
+  
+  // ─── المحاولة 3: Frankfurter (ECB) كاحتياطي أخير ───
+  try {
     const todayRes = await fetch('https://api.frankfurter.app/latest?from=USD', { cache: 'no-cache' });
-    if (!todayRes.ok) throw new Error(`API Error: ${todayRes.status}`);
+    if (!todayRes.ok) throw new Error('Frankfurter today failed');
     const todayData = await todayRes.json();
     
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - 7);
     const pastDateStr = pastDate.toISOString().slice(0, 10);
-    const pastRes = await fetch(`https://api.frankfurter.app/${pastDateStr}?from=USD`, { cache: 'no-cache' });
-    if (!pastRes.ok) throw new Error(`Historical API Error: ${pastRes.status}`);
+    const pastRes = await fetch('https://api.frankfurter.app/' + pastDateStr + '?from=USD', { cache: 'no-cache' });
+    if (!pastRes.ok) throw new Error('Frankfurter past failed');
     const pastData = await pastRes.json();
     
-    const requiredCurrencies = ['EUR', 'JPY', 'GBP', 'CAD', 'SEK', 'CHF'];
-    for (const cur of requiredCurrencies) {
-      if (!todayData.rates[cur] || !pastData.rates[cur]) {
-        throw new Error('Missing currency: ' + cur);
-      }
-    }
+    const currentDXY = calculateDXY({
+      eurUsd: 1 / todayData.rates.EUR,
+      usdJpy: todayData.rates.JPY,
+      gbpUsd: 1 / todayData.rates.GBP,
+      usdCad: todayData.rates.CAD,
+      usdSek: todayData.rates.SEK,
+      usdChf: todayData.rates.CHF
+    });
+    const previousDXY = calculateDXY({
+      eurUsd: 1 / pastData.rates.EUR,
+      usdJpy: pastData.rates.JPY,
+      gbpUsd: 1 / pastData.rates.GBP,
+      usdCad: pastData.rates.CAD,
+      usdSek: pastData.rates.SEK,
+      usdChf: pastData.rates.CHF
+    });
     
-    function calcDXY(rates) {
-      return 50.32 *
-        Math.pow(rates.EUR, -0.576) *
-        Math.pow(rates.JPY, 0.136) *
-        Math.pow(rates.GBP, -0.119) *
-        Math.pow(rates.CAD, 0.091) *
-        Math.pow(rates.SEK, 0.042) *
-        Math.pow(rates.CHF, 0.036);
-    }
-    
-    const currentDXY = calcDXY(todayData.rates);
-    const previousDXY = calcDXY(pastData.rates);
     const change = currentDXY - previousDXY;
     const changePercent = (change / previousDXY) * 100;
     
-    const color = change >= 0 ? 'var(--green)' : 'var(--red)';
-    const sign = change >= 0 ? '+' : '';
-    const arrow = change >= 0 ? '▲' : '▼';
-    
-    dxyContainer.innerHTML = `
-      <div style="display:flex; flex-direction:column; justify-content:center; height:100%; text-align:center; width:100%;">
-        <div style="font-family:'Roboto Mono',monospace; font-size:1.9em; font-weight:700; color:var(--text); direction:ltr;">
-          ${currentDXY.toFixed(3)}
-        </div>
-        <div style="font-family:'Roboto Mono',monospace; font-size:1.05em; font-weight:600; color:${color}; direction:ltr; margin-top:6px;">
-          ${arrow} ${sign}${change.toFixed(3)} (${sign}${changePercent.toFixed(2)}%)
-        </div>
-        <div style="font-size:0.72em; color:var(--muted); margin-top:8px;">
-          ${currentLang === 'ar' ? 'مصدر:' : 'Source:'} ECB · ${todayData.date}
-        </div>
-      </div>
-    `;
-  } catch (error) {
-    console.warn('DXY Fetch blocked or failed:', error.message);
-    // واجهة احتياطية أنيقة في حال حظر المتصفح للطلب
-    const tvUrl = "https://www.tradingview.com/symbols/TVC-DXY/";
-    dxyContainer.innerHTML = `
-      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; width:100%; padding:10px;">
-        <div style="font-size:2em; margin-bottom:8px;">📊</div>
-        <div style="font-size:0.9em; font-weight:600; color:var(--text); margin-bottom:12px;">
-          ${currentLang === 'ar' ? 'مؤشر الدولار (DXY)' : 'US Dollar Index (DXY)'}
-        </div>
-        <a href="${tvUrl}" target="_blank" rel="noopener noreferrer" style="
-          display:inline-flex; align-items:center; gap:6px;
-          padding:8px 16px; background:var(--primary); color:#fff;
-          text-decoration:none; border-radius:8px; font-size:0.85em; font-weight:600;
-          transition:0.2s;
-        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
-          <span>${currentLang === 'ar' ? 'عرض السعر الحي على TradingView' : 'View Live Price on TradingView'}</span>
-          <span>↗</span>
-        </a>
-        <div style="font-size:0.7em; color:var(--muted); margin-top:10px;">
-          ${currentLang === 'ar' ? 'تم تعطيل الجلب التلقائي بسبب إعدادات المتصفح' : 'Auto-fetch blocked by browser settings'}
-        </div>
-      </div>
-    `;
+    renderDXYValue(dxyContainer, currentDXY, change, changePercent, 'Frankfurter · ECB');
+    return;
+  } catch (e) {
+    console.warn('Frankfurter DXY fetch failed:', e.message);
   }
+  
+  // ─── فشل كل المحاولات: عرض الرابط الاحتياطي ───
+  renderDXYFallback(dxyContainer);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   حساب DXY من أسعار الصرف (الصيغة الرسمية)
+   ═══════════════════════════════════════════════════════════ */
+function calculateDXY({ eurUsd, usdJpy, gbpUsd, usdCad, usdSek, usdChf }) {
+  const K = 50.14348112;
+  return K
+    * Math.pow(eurUsd, -0.576)
+    * Math.pow(usdJpy, 0.136)
+    * Math.pow(gbpUsd, -0.119)
+    * Math.pow(usdCad, 0.091)
+    * Math.pow(usdSek, 0.042)
+    * Math.pow(usdChf, 0.036);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   عرض قيمة DXY
+   ═══════════════════════════════════════════════════════════ */
+function renderDXYValue(container, value, change, changePercent, source) {
+  const color = change >= 0 ? 'var(--green)' : 'var(--red)';
+  const sign = change >= 0 ? '+' : '';
+  const arrow = change >= 0 ? '▲' : '▼';
+  
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; justify-content:center; height:100%; text-align:center; width:100%;">
+      <div style="font-family:'Roboto Mono',monospace; font-size:1.9em; font-weight:700; color:var(--text); direction:ltr;">
+        ${value.toFixed(3)}
+      </div>
+      <div style="font-family:'Roboto Mono',monospace; font-size:1.05em; font-weight:600; color:${color}; direction:ltr; margin-top:6px;">
+        ${arrow} ${sign}${change.toFixed(3)} (${sign}${changePercent.toFixed(2)}%)
+      </div>
+      <div style="font-size:0.72em; color:var(--muted); margin-top:8px;">
+        ${currentLang === 'ar' ? 'مصدر:' : 'Source:'} ${source}
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   واجهة احتياطية عند فشل كل المصادر
+   ═══════════════════════════════════════════════════════════ */
+function renderDXYFallback(container) {
+  const tvUrl = "https://www.tradingview.com/symbols/TVC-DXY/";
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; width:100%; padding:10px;">
+      <div style="font-size:2em; margin-bottom:8px;">📊</div>
+      <div style="font-size:0.9em; font-weight:600; color:var(--text); margin-bottom:12px;">
+        ${currentLang === 'ar' ? 'مؤشر الدولار (DXY)' : 'US Dollar Index (DXY)'}
+      </div>
+      <a href="${tvUrl}" target="_blank" rel="noopener noreferrer" style="
+        display:inline-flex; align-items:center; gap:6px;
+        padding:8px 16px; background:var(--primary); color:#fff;
+        text-decoration:none; border-radius:8px; font-size:0.85em; font-weight:600;
+        transition:0.2s;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        <span>${currentLang === 'ar' ? 'عرض السعر الحي على TradingView' : 'View Live Price on TradingView'}</span>
+        <span>↗</span>
+      </a>
+      <div style="font-size:0.7em; color:var(--muted); margin-top:10px;">
+        ${currentLang === 'ar' ? 'تعذر الجلب التلقائي — اضغط للعرض المباشر' : 'Auto-fetch failed — click for live view'}
+      </div>
+    </div>
+  `;
 }
 
 /* ═══════════════════════════════════════════════════════════
