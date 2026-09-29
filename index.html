@@ -173,6 +173,7 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   background:linear-gradient(160deg,var(--card),var(--card2));
   border:1px solid var(--border);border-radius:16px;padding:22px;
   position:relative;overflow:hidden;transition:.3s;
+  display:flex;flex-direction:column;
 }
 .card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
 .card::before{content:'';position:absolute;top:0;right:0;left:0;height:4px;background:var(--primary)}
@@ -211,29 +212,20 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ═══════════════════════════════════════════════════════════
-   بطاقات أسعار العملات
+   بطاقات الأسعار (موحدة)
    ═══════════════════════════════════════════════════════════ */
 .prices-grid{
   display:grid;gap:18px;
   grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
   margin-bottom:30px;
 }
-.prices-grid .card{text-align:center}
-.prices-grid .card::before{height:5px}
 .card.btc::before{background:linear-gradient(90deg,#f7931a,#ffb347)}
 .card.doge::before{background:linear-gradient(90deg,#c2a633,#e0c94d)}
 .card.xrp::before{background:linear-gradient(90deg,#0091ff,#4dabf7)}
 .card.btc .label{color:#f7931a}
 .card.doge .label{color:#c2a633}
 .card.xrp .label{color:#4dabf7}
-.card .value.btc-color{color:#f7931a}
-.card .value.doge-color{color:#c2a633}
-.card .value.xrp-color{color:#0091ff}
-.card .value.price-value{
-  font-size:1.9em;
-  letter-spacing:.5px;
-  text-align:center;
-}
+
 .card .coin-icon{
   width:42px;height:42px;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;
@@ -243,11 +235,15 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card.btc .coin-icon{background:rgba(247,147,26,.15);color:#f7931a;border-color:#f7931a}
 .card.doge .coin-icon{background:rgba(194,166,51,.15);color:#c2a633;border-color:#c2a633}
 .card.xrp .coin-icon{background:rgba(0,145,255,.15);color:#0091ff;border-color:#0091ff}
-.price-loading{
-  display:inline-block;width:14px;height:14px;
-  border:2px solid var(--border);border-top-color:var(--primary);
-  border-radius:50%;animation:spin .8s linear infinite;
-  vertical-align:middle;
+
+.tradingview-widget-container, .custom-dxy-container{
+  flex:1;
+  border-radius:8px;
+  overflow:hidden;
+  min-height:90px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .table-section{
@@ -314,6 +310,30 @@ table.invest-table tfoot td .foot-value{
 }
 .empty-state{padding:40px 20px;text-align:center;color:var(--muted);font-style:italic}
 .empty-state .icon{font-size:2.5em;display:block;margin-bottom:10px;opacity:.5}
+
+/* ═══════════════════════════════════════════════════════════
+   قسم أسعار الأسواق العالمية
+   ═══════════════════════════════════════════════════════════ */
+.market-prices-section{
+  background:linear-gradient(160deg,var(--card),var(--card2));
+  border:1px solid var(--border);border-radius:16px;
+  padding:22px;margin-top:30px;
+  border-top:4px solid var(--gold);
+}
+.market-prices-section h2{
+  font-size:1.15em;color:var(--gold);
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:18px;padding-bottom:14px;
+  border-bottom:2px solid var(--border);
+}
+.market-card .card-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+}
+.market-card .market-icon{font-size:1.5em;}
+.market-card .market-name{
+  font-weight:700;font-size:1em;color:var(--text);
+}
 
 /* ═══════════════════════════════════════════════════════════
    قسم وصلات تهمك
@@ -571,7 +591,6 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
 
 <!-- ═══════ الأزرار المنبثقة ═══════ -->
 <div class="floating-bar">
-  <!-- ✅ زر تحديث الأسعار (جديد) -->
   <button class="fab refresh" id="fabRefresh" onclick="handleRefreshClick()">
     🔄
     <span class="tooltip" id="tipRefresh">تحديث الأسعار الآن</span>
@@ -668,31 +687,22 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
     <button class="btn ghost" onclick="backToMain()" data-i18n="btnBack">↩️ الصفحة الرئيسية</button>
   </div>
 
-  <!-- بطاقات أسعار العملات -->
+  <!-- بطاقات أسعار العملات الرقمية (TradingView Widgets) -->
   <div class="prices-grid">
     <div class="card btc">
       <div class="coin-icon">₿</div>
       <div class="label" data-i18n="priceBTC">سعر BTCUSDT</div>
-      <div class="value btc-color price-value" id="priceBTC">
-        <span class="price-loading"></span>
-      </div>
-      <div class="hint" id="changeBTC">—</div>
+      <div class="tradingview-widget-container" id="widget-btc"></div>
     </div>
     <div class="card doge">
       <div class="coin-icon">Ð</div>
       <div class="label" data-i18n="priceDOGE">سعر DOGEUSDT</div>
-      <div class="value doge-color price-value" id="priceDOGE">
-        <span class="price-loading"></span>
-      </div>
-      <div class="hint" id="changeDOGE">—</div>
+      <div class="tradingview-widget-container" id="widget-doge"></div>
     </div>
     <div class="card xrp">
       <div class="coin-icon">✕</div>
       <div class="label" data-i18n="priceXRP">سعر XRPUSDT</div>
-      <div class="value xrp-color price-value" id="priceXRP">
-        <span class="price-loading"></span>
-      </div>
-      <div class="hint" id="changeXRP">—</div>
+      <div class="tradingview-widget-container" id="widget-xrp"></div>
     </div>
   </div>
 
@@ -753,6 +763,43 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
           </tr>
         </tfoot>
       </table>
+    </div>
+  </div>
+
+  <!-- ═══════ أسعار الأسواق العالمية ═══════ -->
+  <div class="market-prices-section">
+    <h2 data-i18n="marketPricesTitle">🌍 أسعار الأسواق العالمية</h2>
+    <div class="prices-grid">
+      
+      <!-- الذهب -->
+      <div class="card market-card">
+        <div class="card-header">
+          <span class="market-icon">🥇</span>
+          <span class="market-name" data-i18n="goldName">الذهب (XAUUSD)</span>
+        </div>
+        <div class="tradingview-widget-container" id="widget-xau"></div>
+      </div>
+
+      <!-- النفط -->
+      <div class="card market-card">
+        <div class="card-header">
+          <span class="market-icon">🛢️</span>
+          <span class="market-name" data-i18n="oilName">النفط الأمريكي (USOIL)</span>
+        </div>
+        <div class="tradingview-widget-container" id="widget-usoil"></div>
+      </div>
+
+      <!-- مؤشر الدولار (مع نظام احتياطي ذكي) -->
+      <div class="card market-card">
+        <div class="card-header">
+          <span class="market-icon">🇺🇸</span>
+          <span class="market-name" data-i18n="dxyName">مؤشر الدولار (DXY)</span>
+        </div>
+        <div class="custom-dxy-container" id="dxy-custom-widget">
+          <span class="price-loading"></span>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -856,7 +903,7 @@ const T = {
     saveSuccess: '✅ تم حفظ الملفين (JSON + TXT)',
     loadSuccess: '✅ تم استرجاع البيانات بنجاح!',
     loadError: '❌ فشل في استرجاع البيانات',
-    refreshSuccess: '✅ تم تحديث الأسعار!',
+    refreshSuccess: '✅ تم تحديث الأسعار والودجات!',
     refreshError: '❌ فشل في التحديث',
     warnTitle: 'تحذير هام جداً!',
     warnSubtitle: 'عملية المسح لا يمكن التراجع عنها',
@@ -873,6 +920,10 @@ const T = {
     priceBTC: 'سعر BTCUSDT',
     priceDOGE: 'سعر DOGEUSDT',
     priceXRP: 'سعر XRPUSDT',
+    marketPricesTitle: '🌍 أسعار الأسواق العالمية',
+    goldName: 'الذهب (XAUUSD)',
+    oilName: 'النفط الأمريكي (USOIL)',
+    dxyName: 'مؤشر الدولار (DXY)',
     linksTitle: '🔗 وصلات تهمك',
     link1Title: 'خريطة تصفية العقود الآجلة BTC',
     link2Title: 'فيديو يوتيوب',
@@ -916,7 +967,7 @@ const T = {
     saveSuccess: '✅ Both files saved (JSON + TXT)',
     loadSuccess: '✅ Data loaded successfully!',
     loadError: '❌ Failed to load data',
-    refreshSuccess: '✅ Prices updated!',
+    refreshSuccess: '✅ Prices and widgets updated!',
     refreshError: '❌ Failed to refresh',
     warnTitle: 'Very Important Warning!',
     warnSubtitle: 'Deletion cannot be undone',
@@ -933,6 +984,10 @@ const T = {
     priceBTC: 'BTCUSDT Price',
     priceDOGE: 'DOGEUSDT Price',
     priceXRP: 'XRPUSDT Price',
+    marketPricesTitle: '🌍 Global Market Prices',
+    goldName: 'Gold (XAUUSD)',
+    oilName: 'US Oil (USOIL)',
+    dxyName: 'US Dollar Index (DXY)',
     linksTitle: '🔗 Useful Links',
     link1Title: 'BTC Futures Liquidation Heatmap',
     link2Title: 'YouTube Video',
@@ -1025,7 +1080,8 @@ function setLang(lang){
   updateAllTotals();
   updateThemeIcon();
   updateCurrencyFab();
-  renderCryptoPriceCards();
+  renderTradingViewWidgets();
+  fetchDXYPrice();
   saveSettings();
 }
 
@@ -1037,7 +1093,6 @@ function toggleCurrency(){
   updateCurrencyFab();
   refreshAllCardValues();
   updateAllTotals();
-  renderCryptoPriceCards();
   saveSettings();
 }
 function updateCurrencyFab(){
@@ -1076,6 +1131,8 @@ function refreshAllCardValues(){
 function toggleTheme(){
   document.body.classList.toggle('light-mode');
   updateThemeIcon();
+  renderTradingViewWidgets();
+  fetchDXYPrice();
   saveSettings();
 }
 function updateThemeIcon(){
@@ -1119,10 +1176,9 @@ async function handleRefreshClick(){
   fab.style.transform = 'rotate(360deg)';
 
   try{
-    await Promise.all([
-      refresh(),
-      updateCryptoPriceCards()
-    ]);
+    await refresh();
+    renderTradingViewWidgets();
+    fetchDXYPrice();
     showToast(tr('refreshSuccess'), 'success');
   }catch(e){
     console.warn(e);
@@ -1137,111 +1193,134 @@ async function handleRefreshClick(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   بطاقات أسعار العملات
+   ودجات TradingView (للعملات والذهب والنفط)
    ═══════════════════════════════════════════════════════════ */
-const COIN_PRICES = [
-  { symbol: 'BTCUSDT',  id: 'BTC',  key: 'priceBTC'  },
-  { symbol: 'DOGEUSDT', id: 'DOGE', key: 'priceDOGE' },
-  { symbol: 'XRPUSDT',  id: 'XRP',  key: 'priceXRP'  }
+const TV_WIDGETS = [
+  { id: 'widget-btc',   symbol: 'BINANCE:BTCUSDT' },
+  { id: 'widget-doge',  symbol: 'BINANCE:DOGEUSDT' },
+  { id: 'widget-xrp',   symbol: 'BINANCE:XRPUSDT' },
+  { id: 'widget-xau',   symbol: 'OANDA:XAUUSD' },
+  { id: 'widget-usoil', symbol: 'TVC:USOIL' }
 ];
 
-let cryptoCardPrices = {
-  BTC:  { price: null, change: null },
-  DOGE: { price: null, change: null },
-  XRP:  { price: null, change: null }
-};
+function renderTradingViewWidgets() {
+  const isLight = document.body.classList.contains('light-mode');
+  const theme = isLight ? 'light' : 'dark';
+  const locale = currentLang === 'ar' ? 'ar' : 'en';
 
-function formatCryptoPrice(usdPrice){
-  if(isNaN(usdPrice) || usdPrice <= 0) return '—';
+  TV_WIDGETS.forEach(w => {
+    const container = document.getElementById(w.id);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const div = document.createElement('div');
+    div.className = 'tradingview-widget-container__widget';
+    container.appendChild(div);
 
-  const info = curInfo();
-  const converted = usdPrice * info.rate;
-
-  let decimals;
-  if(converted >= 1000)      decimals = 2;
-  else if(converted >= 1)    decimals = 4;
-  else if(converted >= 0.01) decimals = 5;
-  else                       decimals = 6;
-
-  const formatted = converted.toLocaleString('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  });
-
-  if(currentCurrency === 'USD'){
-    return '$' + formatted;
-  }
-  return currentLang === 'ar'
-    ? formatted + ' ' + info.symbol
-    : info.symbol + ' ' + formatted;
-}
-
-function renderCryptoPriceCards(){
-  const COINS = ['BTC','DOGE','XRP'];
-  COINS.forEach(id => {
-    const priceEl = document.getElementById('price' + id);
-    const changeEl = document.getElementById('change' + id);
-    if(!priceEl) return;
-
-    const data = cryptoCardPrices[id];
-    if(!data || data.price === null){
-      priceEl.textContent = '—';
-      if(changeEl) changeEl.textContent = '—';
-      return;
-    }
-
-    priceEl.textContent = formatCryptoPrice(data.price);
-
-    if(changeEl && data.change !== null){
-      const sign = data.change >= 0 ? '+' : '';
-      changeEl.textContent = sign + data.change.toFixed(2) + '% (24h)';
-      changeEl.style.color = data.change >= 0 ? 'var(--green)' : 'var(--red)';
-      changeEl.style.fontWeight = '700';
-    }
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "symbol": w.symbol,
+      "width": "100%",
+      "height": "100%",
+      "locale": locale,
+      "dateRange": "1D",
+      "colorTheme": theme,
+      "isTransparent": true,
+      "autosize": true
+    });
+    container.appendChild(script);
   });
 }
 
-async function fetchCryptoCardPrice(symbol){
-  try{
-    const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=' + symbol);
-    if(r.ok){
-      const j = await r.json();
-      return {
-        price: parseFloat(j.lastPrice),
-        change: parseFloat(j.priceChangePercent)
-      };
+/* ═══════════════════════════════════════════════════════════
+   الحل الجذري لمؤشر الدولار (DXY) مع نظام احتياطي ذكي
+   ═══════════════════════════════════════════════════════════ */
+async function fetchDXYPrice() {
+  const dxyContainer = document.getElementById('dxy-custom-widget');
+  if (!dxyContainer) return;
+  
+  dxyContainer.innerHTML = '<span class="price-loading"></span>';
+  
+  try {
+    // محاولة الجلب المباشر أولاً
+    const todayRes = await fetch('https://api.frankfurter.app/latest?from=USD', { cache: 'no-cache' });
+    if (!todayRes.ok) throw new Error(`API Error: ${todayRes.status}`);
+    const todayData = await todayRes.json();
+    
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 7);
+    const pastDateStr = pastDate.toISOString().slice(0, 10);
+    const pastRes = await fetch(`https://api.frankfurter.app/${pastDateStr}?from=USD`, { cache: 'no-cache' });
+    if (!pastRes.ok) throw new Error(`Historical API Error: ${pastRes.status}`);
+    const pastData = await pastRes.json();
+    
+    const requiredCurrencies = ['EUR', 'JPY', 'GBP', 'CAD', 'SEK', 'CHF'];
+    for (const cur of requiredCurrencies) {
+      if (!todayData.rates[cur] || !pastData.rates[cur]) {
+        throw new Error('Missing currency: ' + cur);
+      }
     }
-  }catch(e){}
-
-  try{
-    const r = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(
-      'https://api.mexc.com/api/v3/ticker/24hr?symbol=' + symbol
-    ));
-    if(r.ok){
-      const j = await r.json();
-      return {
-        price: parseFloat(j.lastPrice),
-        change: parseFloat(j.priceChangePercent)
-      };
+    
+    function calcDXY(rates) {
+      return 50.32 *
+        Math.pow(rates.EUR, -0.576) *
+        Math.pow(rates.JPY, 0.136) *
+        Math.pow(rates.GBP, -0.119) *
+        Math.pow(rates.CAD, 0.091) *
+        Math.pow(rates.SEK, 0.042) *
+        Math.pow(rates.CHF, 0.036);
     }
-  }catch(e){}
-
-  return null;
-}
-
-async function updateCryptoPriceCards(){
-  for(const coin of COIN_PRICES){
-    const data = await fetchCryptoCardPrice(coin.symbol);
-    if(data && !isNaN(data.price)){
-      cryptoCardPrices[coin.id] = {
-        price: data.price,
-        change: isNaN(data.change) ? null : data.change
-      };
-    } else {
-      cryptoCardPrices[coin.id] = { price: null, change: null };
-    }
+    
+    const currentDXY = calcDXY(todayData.rates);
+    const previousDXY = calcDXY(pastData.rates);
+    const change = currentDXY - previousDXY;
+    const changePercent = (change / previousDXY) * 100;
+    
+    const color = change >= 0 ? 'var(--green)' : 'var(--red)';
+    const sign = change >= 0 ? '+' : '';
+    const arrow = change >= 0 ? '▲' : '▼';
+    
+    dxyContainer.innerHTML = `
+      <div style="display:flex; flex-direction:column; justify-content:center; height:100%; text-align:center; width:100%;">
+        <div style="font-family:'Roboto Mono',monospace; font-size:1.9em; font-weight:700; color:var(--text); direction:ltr;">
+          ${currentDXY.toFixed(3)}
+        </div>
+        <div style="font-family:'Roboto Mono',monospace; font-size:1.05em; font-weight:600; color:${color}; direction:ltr; margin-top:6px;">
+          ${arrow} ${sign}${change.toFixed(3)} (${sign}${changePercent.toFixed(2)}%)
+        </div>
+        <div style="font-size:0.72em; color:var(--muted); margin-top:8px;">
+          ${currentLang === 'ar' ? 'مصدر:' : 'Source:'} ECB · ${todayData.date}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.warn('DXY Fetch blocked or failed:', error.message);
+    // واجهة احتياطية أنيقة في حال حظر المتصفح للطلب
+    const tvUrl = "https://www.tradingview.com/symbols/TVC-DXY/";
+    dxyContainer.innerHTML = `
+      <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; text-align:center; width:100%; padding:10px;">
+        <div style="font-size:2em; margin-bottom:8px;">📊</div>
+        <div style="font-size:0.9em; font-weight:600; color:var(--text); margin-bottom:12px;">
+          ${currentLang === 'ar' ? 'مؤشر الدولار (DXY)' : 'US Dollar Index (DXY)'}
+        </div>
+        <a href="${tvUrl}" target="_blank" rel="noopener noreferrer" style="
+          display:inline-flex; align-items:center; gap:6px;
+          padding:8px 16px; background:var(--primary); color:#fff;
+          text-decoration:none; border-radius:8px; font-size:0.85em; font-weight:600;
+          transition:0.2s;
+        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+          <span>${currentLang === 'ar' ? 'عرض السعر الحي على TradingView' : 'View Live Price on TradingView'}</span>
+          <span>↗</span>
+        </a>
+        <div style="font-size:0.7em; color:var(--muted); margin-top:10px;">
+          ${currentLang === 'ar' ? 'تم تعطيل الجلب التلقائي بسبب إعدادات المتصفح' : 'Auto-fetch blocked by browser settings'}
+        </div>
+      </div>
+    `;
   }
-  renderCryptoPriceCards();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1255,7 +1334,7 @@ function saveDataToFile(){
 
     const jsonData = {
       app: 'Muharraqi Summary Page',
-      version: '1.1',
+      version: '1.3',
       savedAt: now.toISOString(),
       settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale },
       table: tableRows,
@@ -1267,7 +1346,7 @@ function saveDataToFile(){
     const line = '═══════════════════════════════════════════════════';
     let txt = '';
     txt += line + '\n📊 ملخص المحفظة — Muharraqi Pro Edition\n' + line + '\n';
-    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.1\n\n';
+    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.3\n\n';
     txt += '═══ ⚙️ الإعدادات ═══\n';
     txt += 'language=' + currentLang + '\ncurrency=' + currentCurrency + '\n';
     txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n\n';
@@ -1277,10 +1356,6 @@ function saveDataToFile(){
     txt += 'إجمالي القيمة الحالية           : ' + (document.getElementById('totalCurrent')?.textContent || '—') + '\n';
     txt += 'إجمالي الربح / الخسارة %       : ' + (document.getElementById('totalPnlPct')?.textContent || '—') + '\n';
     txt += 'الفرق (المستثمر − القيمة)       : ' + (document.getElementById('differenceValue')?.textContent || '—') + '\n\n';
-    txt += '═══ 💰 أسعار العملات ═══\n';
-    txt += 'BTCUSDT  : ' + (document.getElementById('priceBTC')?.textContent || '—') + '  ' + (document.getElementById('changeBTC')?.textContent || '') + '\n';
-    txt += 'DOGEUSDT : ' + (document.getElementById('priceDOGE')?.textContent || '—') + '  ' + (document.getElementById('changeDOGE')?.textContent || '') + '\n';
-    txt += 'XRPUSDT  : ' + (document.getElementById('priceXRP')?.textContent || '—') + '  ' + (document.getElementById('changeXRP')?.textContent || '') + '\n\n';
     txt += '═══ 📋 جدول الإضافات ═══\n';
     txt += '# | الاسم | المبلغ | التاريخ | الملاحظات\n';
     txt += '───────────────────────────────────────────────────\n';
@@ -1676,9 +1751,11 @@ function backToMain(){
   loadTable();
   renderTable();
   refresh();
-  updateCryptoPriceCards();
+  renderTradingViewWidgets();
+  fetchDXYPrice();
+  
   setInterval(refresh, 30000);
-  setInterval(updateCryptoPriceCards, 30000);
+  setInterval(fetchDXYPrice, 30000);
 })();
 </script>
 </body>
