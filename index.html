@@ -687,25 +687,6 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
     <button class="btn ghost" onclick="backToMain()" data-i18n="btnBack">↩️ الصفحة الرئيسية</button>
   </div>
 
-  <!-- بطاقات أسعار العملات الرقمية (TradingView Widgets) -->
-  <div class="prices-grid">
-    <div class="card btc">
-      <div class="coin-icon">₿</div>
-      <div class="label" data-i18n="priceBTC">سعر BTCUSDT</div>
-      <div class="tradingview-widget-container" id="widget-btc"></div>
-    </div>
-    <div class="card doge">
-      <div class="coin-icon">Ð</div>
-      <div class="label" data-i18n="priceDOGE">سعر DOGEUSDT</div>
-      <div class="tradingview-widget-container" id="widget-doge"></div>
-    </div>
-    <div class="card xrp">
-      <div class="coin-icon">✕</div>
-      <div class="label" data-i18n="priceXRP">سعر XRPUSDT</div>
-      <div class="tradingview-widget-container" id="widget-xrp"></div>
-    </div>
-  </div>
-
   <!-- البطاقات الخمس -->
   <div class="grid">
     <div class="card purple">
@@ -770,7 +751,28 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   <div class="market-prices-section">
     <h2 data-i18n="marketPricesTitle">🌍 أسعار الأسواق العالمية</h2>
     <div class="prices-grid">
-      
+
+      <!-- BTC (أولاً) -->
+      <div class="card btc">
+        <div class="coin-icon">₿</div>
+        <div class="label" data-i18n="priceBTC">سعر BTCUSDT</div>
+        <div class="tradingview-widget-container" id="widget-btc"></div>
+      </div>
+
+      <!-- DOGE (ثانياً) -->
+      <div class="card doge">
+        <div class="coin-icon">Ð</div>
+        <div class="label" data-i18n="priceDOGE">سعر DOGEUSDT</div>
+        <div class="tradingview-widget-container" id="widget-doge"></div>
+      </div>
+
+      <!-- XRP (ثالثاً) -->
+      <div class="card xrp">
+        <div class="coin-icon">✕</div>
+        <div class="label" data-i18n="priceXRP">سعر XRPUSDT</div>
+        <div class="tradingview-widget-container" id="widget-xrp"></div>
+      </div>
+
       <!-- الذهب -->
       <div class="card market-card">
         <div class="card-header">
@@ -1287,7 +1289,6 @@ async function fetchDXYPrice() {
           usdChf: rates.CHF
         });
         
-        // محاولة جلب بيانات تاريخية لحساب التغير
         let previousDXY = dxy;
         try {
           const pastDate = new Date();
@@ -1359,7 +1360,6 @@ async function fetchDXYPrice() {
     console.warn('Frankfurter DXY fetch failed:', e.message);
   }
   
-  // ─── فشل كل المحاولات: عرض الرابط الاحتياطي ───
   renderDXYFallback(dxyContainer);
 }
 
