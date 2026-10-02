@@ -221,7 +221,6 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card.doge .coin-icon{background:rgba(194,166,51,.15);color:#c2a633;border-color:#c2a633}
 .card.xrp .coin-icon{background:rgba(0,145,255,.15);color:#0091ff;border-color:#0091ff}
 
-/* ✅ الحل: أبعاد ثابتة للودجات بدل flex:1 */
 .tradingview-widget-container{
   width:100%;
   height:150px;
@@ -794,6 +793,15 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
         </div>
         <span class="link-arrow">↗</span>
       </a>
+      <a href="https://www.binance.com/en/proof-of-reserves"
+         target="_blank" rel="noopener noreferrer" class="link-card">
+        <div class="link-icon">🏦</div>
+        <div class="link-info">
+          <div class="link-title" data-i18n="link3Title">إثبات الاحتياطيات (Binance)</div>
+          <span class="link-url">binance.com / proof-of-reserves</span>
+        </div>
+        <span class="link-arrow">↗</span>
+      </a>
     </div>
   </div>
 
@@ -864,7 +872,9 @@ const T = {
     goldName: 'الذهب (XAUUSD)', oilName: 'النفط الأمريكي (USOIL)',
     dxyName: 'مؤشر الدولار (DXY)',
     linksTitle: '🔗 وصلات تهمك',
-    link1Title: 'خريطة تصفية العقود الآجلة BTC', link2Title: 'فيديو يوتيوب',
+    link1Title: 'خريطة تصفية العقود الآجلة BTC',
+    link2Title: 'فيديو يوتيوب',
+    link3Title: 'إثبات الاحتياطيات (Binance)',
   },
   en: {
     brand: 'Portfolio Summary', title: '📊 Portfolio Summary',
@@ -909,7 +919,9 @@ const T = {
     goldName: 'Gold (XAUUSD)', oilName: 'US Oil (USOIL)',
     dxyName: 'US Dollar Index (DXY)',
     linksTitle: '🔗 Useful Links',
-    link1Title: 'BTC Futures Liquidation Heatmap', link2Title: 'YouTube Video',
+    link1Title: 'BTC Futures Liquidation Heatmap',
+    link2Title: 'YouTube Video',
+    link3Title: 'Proof of Reserves (Binance)',
   }
 };
 const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
@@ -1085,9 +1097,6 @@ async function handleRefreshClick(){
   }, 800);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   ✅ ودجات TradingView — تهيئة تدريجية لتفادي التعارض
-   ═══════════════════════════════════════════════════════════ */
 const TV_WIDGETS = [
   { id: 'widget-btc',   symbol: 'BINANCE:BTCUSDT' },
   { id: 'widget-doge',  symbol: 'BINANCE:DOGEUSDT' },
@@ -1103,16 +1112,13 @@ function renderTradingViewWidgets() {
   const theme = isLight ? 'light' : 'dark';
   const locale = currentLang === 'ar' ? 'ar' : 'en';
 
-  // إلغاء أي جلسة سابقة
   if(widgetRenderTimer) clearTimeout(widgetRenderTimer);
 
-  // إفراغ جميع الحاويات فوراً
   TV_WIDGETS.forEach(w => {
     const container = document.getElementById(w.id);
     if(container) container.innerHTML = '';
   });
 
-  // تهيئة الودجات بشكل متتابع (كل 250ms) لتفادي التعارض
   TV_WIDGETS.forEach((w, index) => {
     widgetRenderTimer = setTimeout(() => {
       const container = document.getElementById(w.id);
@@ -1654,20 +1660,15 @@ async function refresh(){
 
 function backToMain(){ location.href = 'index.html'; }
 
-/* ═══════════════════════════════════════════════════════════
-   تشغيل أولي — ✅ تم إصلاح التكرار
-   ═══════════════════════════════════════════════════════════ */
 (function init(){
   loadSettings();
   applyFontSize();
-  // setLang يستدعي renderTradingViewWidgets و fetchDXYPrice بنفسه
   setLang(currentLang);
   updateCurrencyFab();
   updateThemeIcon();
   loadTable();
   renderTable();
   refresh();
-  // ⚠️ لا نستدعي renderTradingViewWidgets هنا مرة أخرى (تم في setLang)
 
   setInterval(refresh, 30000);
   setInterval(fetchDXYPrice, 30000);
