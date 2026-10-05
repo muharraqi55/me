@@ -539,6 +539,11 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   .warning-body{padding:18px 16px}
 }
 
+/* ═══════ إخفاء البيانات الحساسة ═══════ */
+body.hide-sensitive .card.hideable{ display:none !important; }
+body.hide-sensitive table.invest-table th.col-amount,
+body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
+
 @media (max-width:900px){
   .floating-bar{
     right:8px;top:auto;bottom:20px;transform:none;
@@ -587,6 +592,10 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   <button class="fab" id="fabTheme" onclick="toggleTheme()">
     🌙
     <span class="tooltip" id="tipTheme">الوضع الليلي / النهاري</span>
+  </button>
+  <button class="fab" id="fabHide" onclick="toggleHideSensitive()">
+    <span id="fabHideIcon">👁️</span>
+    <span class="tooltip" id="tipHide" data-i18n="tipHide">إخفاء / إظهار البيانات الحساسة</span>
   </button>
   <button class="fab" id="fabSave" onclick="saveDataToFile()">
     💾
@@ -664,7 +673,7 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   </div>
 
   <div class="grid">
-    <div class="card purple">
+    <div class="card purple hideable">
       <div class="label" data-i18n="cardInvested">💼 إجمالي المبلغ المستثمر (المحفظة)</div>
       <div class="value purple" id="totalInvested">0.00 $</div>
       <div class="hint">
@@ -672,11 +681,11 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
         ➕ <span data-i18n="hintManual">إضافاتك (الجدول):</span> <b id="hintManual">0.00 $</b>
       </div>
     </div>
-    <div class="card gold">
+    <div class="card gold hideable">
       <div class="label" data-i18n="cardPnl">📈 إجمالي الربح / الخسارة $</div>
       <div class="value gold" id="totalPnl">—</div>
     </div>
-    <div class="card green">
+    <div class="card green hideable">
       <div class="label" data-i18n="cardCurrent">💎 إجمالي القيمة الحالية</div>
       <div class="value green" id="totalCurrent">—</div>
     </div>
@@ -701,7 +710,7 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
           <tr>
             <th style="width:60px">#</th>
             <th style="width:22%" data-i18n="thName">الاسم</th>
-            <th style="width:18%" data-i18n="thAmount">المبلغ المستثمر</th>
+            <th style="width:18%" class="col-amount" data-i18n="thAmount">المبلغ المستثمر</th>
             <th style="width:18%" data-i18n="thDate">التاريخ</th>
             <th data-i18n="thNote">الملاحظات</th>
             <th style="width:80px" data-i18n="thActions">إجراءات</th>
@@ -821,6 +830,7 @@ const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
 let currentCurrency = 'USD';
 let currentLang = 'ar';
 let fontScale = 1;
+let hideSensitive = false;
 
 const CURRENCIES = {
   USD:{symbol:'$',   rate:1,    decimals:2, nameAr:'دولار أمريكي', nameEn:'US Dollar'},
@@ -849,6 +859,7 @@ const T = {
     tipRefresh: 'تحديث الأسعار الآن', tipCurrency: 'تبديل العملة (دولار ⇄ دينار)',
     tipTheme: 'الوضع الليلي / النهاري', tipSave: 'حفظ المعلومات',
     tipLoad: 'استرجاع المعلومات', tipDelete: 'مسح جميع البيانات',
+    tipHide: 'إخفاء / إظهار البيانات الحساسة',
     statusOk: 'تم التحديث — عدد العملات:',
     statusNoData: '⚠️ لا توجد بيانات محفظة. الصفحة ستعمل بالجدول اليدوي فقط.',
     statusNoCoins: '⚠️ لا توجد عملات مضافة.',
@@ -896,6 +907,7 @@ const T = {
     tipRefresh: 'Refresh prices now', tipCurrency: 'Switch currency (USD ⇄ BHD)',
     tipTheme: 'Dark / Light mode', tipSave: 'Save data',
     tipLoad: 'Load data', tipDelete: 'Delete all data',
+    tipHide: 'Hide / Show sensitive data',
     statusOk: 'Updated — Coins:',
     statusNoData: '⚠️ No portfolio data. Page will use manual table only.',
     statusNoCoins: '⚠️ No coins added.',
@@ -962,7 +974,8 @@ function saveSettings(){
     localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify({
       lang: currentLang, currency: currentCurrency,
       theme: document.body.classList.contains('light-mode') ? 'light' : 'dark',
-      fontScale: fontScale
+      fontScale: fontScale,
+      hideSensitive: hideSensitive
     }));
   }catch(e){}
 }
@@ -974,6 +987,7 @@ function loadSettings(){
       currentLang = s.lang || 'ar';
       currentCurrency = s.currency || 'USD';
       fontScale = s.fontScale || 1;
+      if(typeof s.hideSensitive === 'boolean') hideSensitive = s.hideSensitive;
       if(s.theme === 'light') document.body.classList.add('light-mode');
     }
   }catch(e){}
@@ -1058,6 +1072,18 @@ function updateThemeIcon(){
   tip.id = 'tipTheme';
   tip.textContent = tr('tipTheme');
   fab.appendChild(tip);
+}
+
+/* ═══════ إخفاء/إظهار البيانات الحساسة ═══════ */
+function applyHideSensitive(){
+  document.body.classList.toggle('hide-sensitive', hideSensitive);
+  const icon = document.getElementById('fabHideIcon');
+  if(icon) icon.textContent = hideSensitive ? '🙈' : '👁️';
+}
+function toggleHideSensitive(){
+  hideSensitive = !hideSensitive;
+  applyHideSensitive();
+  saveSettings();
 }
 
 function changeFontSize(delta){
@@ -1301,7 +1327,7 @@ function saveDataToFile(){
     const jsonData = {
       app: 'Muharraqi Summary Page', version: '1.3',
       savedAt: now.toISOString(),
-      settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale },
+      settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale, hideSensitive: hideSensitive },
       table: tableRows,
       portfolioData: localStorage.getItem(LS_KEY_DATA) || null
     };
@@ -1314,7 +1340,8 @@ function saveDataToFile(){
     txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.3\n\n';
     txt += '═══ ⚙️ الإعدادات ═══\n';
     txt += 'language=' + currentLang + '\ncurrency=' + currentCurrency + '\n';
-    txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n\n';
+    txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n';
+    txt += 'hideSensitive=' + hideSensitive + '\n\n';
     txt += '═══ 📊 ملخص البطاقات ═══\n';
     txt += 'إجمالي المبلغ المستثمر (المحفظة): ' + (document.getElementById('totalInvested')?.textContent || '—') + '\n';
     txt += 'إجمالي الربح / الخسارة $        : ' + (document.getElementById('totalPnl')?.textContent || '—') + '\n';
@@ -1373,12 +1400,14 @@ document.getElementById('loadFileInput').addEventListener('change', function(e){
         if(data.settings.lang) currentLang = data.settings.lang;
         if(data.settings.currency) currentCurrency = data.settings.currency;
         if(data.settings.fontScale) fontScale = data.settings.fontScale;
+        if(typeof data.settings.hideSensitive === 'boolean') hideSensitive = data.settings.hideSensitive;
         if(data.settings.theme === 'light') document.body.classList.add('light-mode');
         else document.body.classList.remove('light-mode');
       }
       if(data.portfolioData) localStorage.setItem(LS_KEY_DATA, data.portfolioData);
       setLang(currentLang);
       applyFontSize();
+      applyHideSensitive();
       updateCurrencyFab();
       updateThemeIcon();
       renderTable();
@@ -1402,11 +1431,13 @@ function executeDeleteAll(){
   currentLang = 'ar';
   currentCurrency = 'USD';
   fontScale = 1;
+  hideSensitive = false;
   document.body.classList.remove('light-mode');
   document.body.style.fontSize = '14px';
   loadTable();
   renderTable();
   applyFontSize();
+  applyHideSensitive();
   setLang(currentLang);
   updateCurrencyFab();
   updateThemeIcon();
@@ -1471,7 +1502,7 @@ function renderTable(){
     <tr data-id="${row.id}">
       <td class="serial">${idx + 1}</td>
       <td><input type="text" value="${escapeHtml(row.name||'')}" placeholder="..." oninput="updateRowIn(${row.id}, 'name', this.value)"></td>
-      <td><input type="number" value="${row.amount||''}" placeholder="0.00" step="any" min="0" oninput="updateRowIn(${row.id}, 'amount', this.value)"></td>
+      <td class="col-amount"><input type="number" value="${row.amount||''}" placeholder="0.00" step="any" min="0" oninput="updateRowIn(${row.id}, 'amount', this.value)"></td>
       <td><input type="date" value="${row.date||''}" onchange="updateRowIn(${row.id}, 'date', this.value)"></td>
       <td><textarea placeholder="..." oninput="updateRowIn(${row.id}, 'note', this.value)">${escapeHtml(row.note||'')}</textarea></td>
       <td class="actions"><button class="btn red" onclick="deleteRowFrom(${row.id})" title="حذف">🗑️</button></td>
@@ -1663,6 +1694,7 @@ function backToMain(){ location.href = 'index.html'; }
 (function init(){
   loadSettings();
   applyFontSize();
+  applyHideSensitive();
   setLang(currentLang);
   updateCurrencyFab();
   updateThemeIcon();
