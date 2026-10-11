@@ -352,7 +352,6 @@ table.invest-table tfoot td .foot-value{
   text-decoration:none;color:var(--text);
   transition:.25s;position:relative;
   overflow:hidden;
-  cursor:pointer;
 }
 .link-card::before{
   content:'';position:absolute;top:0;right:0;bottom:0;
@@ -404,6 +403,258 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   .link-card{padding:14px}
   .link-card .link-icon{width:40px;height:40px;font-size:1.2em}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   🎬 زر يوتيوب الرئيسي (YouTube Launcher)
+   ═══════════════════════════════════════════════════════════ */
+.youtube-launcher{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:16px 20px;
+  background:linear-gradient(135deg,#ff0000,#cc0000);
+  border:none;
+  border-radius:14px;
+  color:#fff;
+  cursor:pointer;
+  font-family:inherit;
+  text-align:start;
+  transition:all .25s;
+  box-shadow:0 6px 20px rgba(255,0,0,.28);
+  margin-bottom:18px;
+  position:relative;
+  overflow:hidden;
+}
+.youtube-launcher::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.18), transparent 60%);
+  opacity:0;
+  transition:opacity .3s;
+}
+.youtube-launcher:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 32px rgba(255,0,0,.45);
+}
+.youtube-launcher:hover::before{ opacity:1; }
+.youtube-launcher:active{ transform:translateY(-1px); }
+.yt-launcher-icon{
+  width:52px;
+  height:52px;
+  border-radius:14px;
+  background:rgba(255,255,255,.18);
+  border:2px solid rgba(255,255,255,.32);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  position:relative;
+  z-index:1;
+}
+.yt-launcher-icon svg{
+  width:26px;height:26px;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
+}
+.yt-launcher-info{
+  flex:1;
+  min-width:0;
+  position:relative;
+  z-index:1;
+}
+.yt-launcher-title{
+  font-size:1.05em;
+  font-weight:800;
+  margin-bottom:4px;
+  letter-spacing:.3px;
+}
+.yt-launcher-sub{
+  font-size:.78em;
+  opacity:.92;
+  font-weight:500;
+}
+.yt-launcher-count{
+  background:rgba(255,255,255,.22);
+  border:1px solid rgba(255,255,255,.35);
+  padding:6px 14px;
+  border-radius:20px;
+  font-weight:800;
+  font-size:.85em;
+  flex-shrink:0;
+  position:relative;
+  z-index:1;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎬 نافذة منبثقة لقائمة الفيديوهات
+   ═══════════════════════════════════════════════════════════ */
+.yt-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:var(--modal-bg);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99998;
+  padding:20px;
+  animation:fadeIn .25s ease;
+}
+.yt-modal-overlay.active{ display:flex; }
+.yt-modal{
+  background:var(--card);
+  border-radius:20px;
+  max-width:580px;
+  width:100%;
+  max-height:90vh;
+  overflow:hidden;
+  box-shadow:0 25px 80px rgba(0,0,0,.5);
+  border:2px solid var(--border);
+  animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  display:flex;
+  flex-direction:column;
+}
+.yt-modal-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:16px 20px;
+  background:linear-gradient(135deg,#ff0000,#990000);
+  color:#fff;
+  position:relative;
+  flex-shrink:0;
+}
+.yt-logo-badge{
+  width:42px;
+  height:42px;
+  border-radius:11px;
+  background:rgba(255,255,255,.2);
+  border:1px solid rgba(255,255,255,.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.yt-logo-badge svg{ width:22px; height:22px; }
+.yt-header-text{ flex:1; min-width:0; }
+.yt-modal-header h3{
+  font-size:1.05em;
+  font-weight:800;
+  margin-bottom:3px;
+}
+.yt-modal-header p{
+  font-size:.75em;
+  opacity:.9;
+}
+.yt-close{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:rgba(255,255,255,.15);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.25);
+  cursor:pointer;
+  font-size:1.05em;
+  font-weight:800;
+  transition:.25s;
+  font-family:inherit;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.yt-close:hover{
+  background:rgba(255,255,255,.32);
+  transform:rotate(90deg);
+}
+.yt-list{
+  padding:14px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.yt-item{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:10px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  cursor:pointer;
+  transition:.22s;
+  font-family:inherit;
+  color:var(--text);
+  text-align:start;
+  width:100%;
+}
+.yt-item:hover{
+  border-color:#ff0000;
+  background:rgba(255,0,0,.07);
+  box-shadow:0 6px 18px rgba(255,0,0,.18);
+}
+body[dir="rtl"] .yt-item:hover{ transform:translateX(-3px); }
+body[dir="ltr"] .yt-item:hover{ transform:translateX(3px); }
+.yt-thumb{
+  width:104px;
+  height:62px;
+  border-radius:8px;
+  overflow:hidden;
+  position:relative;
+  flex-shrink:0;
+  background:#000;
+  border:1px solid var(--border);
+}
+.yt-thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.yt-thumb-play{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.35);
+  color:#fff;
+  transition:.25s;
+}
+.yt-item:hover .yt-thumb-play{ background:rgba(255,0,0,.75); }
+.yt-thumb-play svg{
+  width:22px;height:22px;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+}
+.yt-item-info{ flex:1; min-width:0; }
+.yt-item-title{
+  font-weight:700;
+  font-size:.95em;
+  margin-bottom:5px;
+  color:var(--text);
+}
+.yt-item-url{
+  font-size:.68em;
+  color:var(--muted);
+  font-family:'Roboto Mono',monospace;
+  direction:ltr;
+  text-align:left;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:block;
+  opacity:.85;
+}
+.yt-item-arrow{
+  color:var(--muted);
+  font-weight:800;
+  font-size:1.15em;
+  transition:.25s;
+  flex-shrink:0;
+}
+.yt-item:hover .yt-item-arrow{ color:#ff0000; }
 
 .warning-modal-overlay{
   position:fixed;inset:0;background:var(--modal-bg);
@@ -562,6 +813,13 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   .topbar{padding:10px 12px}
   .topbar .brand{font-size:.95em}
 }
+@media (max-width:560px){
+  .yt-thumb{width:88px; height:52px;}
+  .yt-item-title{font-size:.88em;}
+  .youtube-launcher{padding:14px 16px;gap:12px;}
+  .yt-launcher-icon{width:44px;height:44px;}
+  .yt-launcher-title{font-size:.95em;}
+}
 </style>
 </head>
 <body>
@@ -613,6 +871,23 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 </div>
 
 <input type="file" id="loadFileInput" accept=".json" style="display:none">
+
+<!-- ═══════ نافذة يوتيوب المنبثقة ═══════ -->
+<div class="yt-modal-overlay" id="ytModal" onclick="closeYouTubeList(event)">
+  <div class="yt-modal" onclick="event.stopPropagation()">
+    <div class="yt-modal-header">
+      <div class="yt-logo-badge">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="yt-header-text">
+        <h3 data-i18n="ytModalTitle">🎬 قائمة فيديوهات يوتيوب</h3>
+        <p data-i18n="ytModalSub">اختر الفيديو ليفتح مباشرة في تطبيق يوتيوب</p>
+      </div>
+      <button class="yt-close" onclick="closeYouTubeList()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="yt-list" id="ytList"></div>
+  </div>
+</div>
 
 <div class="warning-modal-overlay" id="deleteWarningModal">
   <div class="warning-modal" onclick="event.stopPropagation()">
@@ -784,6 +1059,19 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
   <div class="links-section">
     <h2 data-i18n="linksTitle">🔗 وصلات تهمك</h2>
+
+    <!-- 🎬 زر يوتيوب الرئيسي -->
+    <button class="youtube-launcher" onclick="openYouTubeList()">
+      <div class="yt-launcher-icon">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="yt-launcher-info">
+        <div class="yt-launcher-title" data-i18n="ytLauncherTitle">فيديوهات يوتيوب</div>
+        <div class="yt-launcher-sub" data-i18n="ytLauncherSub">اضغط لعرض قائمة الفيديوهات</div>
+      </div>
+      <div class="yt-launcher-count" id="ytCount">4</div>
+    </button>
+
     <div class="links-grid">
       <a href="https://www.coinglass.com/pro/futures/LiquidationHeatMapNew?coin=BTC&type=pair"
          target="_blank" rel="noopener noreferrer" class="link-card">
@@ -794,14 +1082,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
         <span class="link-arrow">↗</span>
       </a>
-      <div class="link-card" onclick="openYouTubeSmart('Nw2K3VQ8S1Y')">
-        <div class="link-icon">▶️</div>
-        <div class="link-info">
-          <div class="link-title" data-i18n="link2Title">فيديو يوتيوب</div>
-          <span class="link-url">youtube.com / watch</span>
-        </div>
-        <span class="link-arrow">↗</span>
-      </div>
       <a href="https://www.binance.com/en/proof-of-reserves"
          target="_blank" rel="noopener noreferrer" class="link-card">
         <div class="link-icon">🏦</div>
@@ -811,15 +1091,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
         <span class="link-arrow">↗</span>
       </a>
-      <!-- ✅ الوصلة الجديدة المضافة (تفتح مباشرة على تطبيق يوتيوب) -->
-      <div class="link-card" onclick="openYouTubeSmart('7sH8kr2VtLU')">
-        <div class="link-icon">▶️</div>
-        <div class="link-info">
-          <div class="link-title" data-i18n="link4Title">فيديو يوتيوب 2</div>
-          <span class="link-url">youtube.com / watch</span>
-        </div>
-        <span class="link-arrow">↗</span>
-      </div>
     </div>
   </div>
 
@@ -835,6 +1106,16 @@ const LS_KEY_DATA = 'cryptoTrackerUniversal_v41_data';
 const TABLE_KEY = 'muharraqi_portfolio_table_v1';
 const LS_KEY_SETTINGS = 'muharraqi_summary_settings_v1';
 const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
+
+/* ═══════════════════════════════════════════════════════════
+   🎬 قائمة فيديوهات يوتيوب
+   ═══════════════════════════════════════════════════════════ */
+const YT_VIDEOS = [
+  { id: '7sH8kr2VtLU', titleAr: 'فيديو يوتيوب 1', titleEn: 'YouTube Video 1' },
+  { id: 's1haZKOzV-0', titleAr: 'فيديو يوتيوب 2', titleEn: 'YouTube Video 2' },
+  { id: 'Nw2K3VQ8S1Y', titleAr: 'فيديو يوتيوب 3', titleEn: 'YouTube Video 3' },
+  { id: 'XIyocP-yr9E', titleAr: 'فيديو يوتيوب 4', titleEn: 'YouTube Video 4' },
+];
 
 let currentCurrency = 'USD';
 let currentLang = 'ar';
@@ -893,9 +1174,11 @@ const T = {
     dxyName: 'مؤشر الدولار (DXY)',
     linksTitle: '🔗 وصلات تهمك',
     link1Title: 'خريطة تصفية العقود الآجلة BTC',
-    link2Title: 'فيديو يوتيوب',
     link3Title: 'إثبات الاحتياطيات (Binance)',
-    link4Title: 'فيديو يوتيوب 2',
+    ytLauncherTitle: 'فيديوهات يوتيوب',
+    ytLauncherSub: 'اضغط لعرض قائمة الفيديوهات',
+    ytModalTitle: '🎬 قائمة فيديوهات يوتيوب',
+    ytModalSub: 'اختر الفيديو ليفتح مباشرة في تطبيق يوتيوب',
   },
   en: {
     brand: 'Portfolio Summary', title: '📊 Portfolio Summary',
@@ -942,9 +1225,11 @@ const T = {
     dxyName: 'US Dollar Index (DXY)',
     linksTitle: '🔗 Useful Links',
     link1Title: 'BTC Futures Liquidation Heatmap',
-    link2Title: 'YouTube Video',
     link3Title: 'Proof of Reserves (Binance)',
-    link4Title: 'YouTube Video 2',
+    ytLauncherTitle: 'YouTube Videos',
+    ytLauncherSub: 'Click to view the video list',
+    ytModalTitle: '🎬 YouTube Videos List',
+    ytModalSub: 'Choose a video to open directly in the YouTube app',
   }
 };
 const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
@@ -1025,6 +1310,9 @@ function setLang(lang){
   updateCurrencyFab();
   renderTradingViewWidgets();
   fetchDXYPrice();
+  if(document.getElementById('ytModal').classList.contains('active')){
+    renderYouTubeList();
+  }
   saveSettings();
 }
 
@@ -1109,7 +1397,44 @@ function applyFontSize(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🎯 دالة ذكية لفتح رابط يوتيوب في التطبيق مباشرة على جميع الأنظمة
+   🎬 دوال قائمة يوتيوب
+   ═══════════════════════════════════════════════════════════ */
+function renderYouTubeList(){
+  const list = document.getElementById('ytList');
+  if(!list) return;
+  list.innerHTML = YT_VIDEOS.map(v => {
+    const title = currentLang === 'ar' ? v.titleAr : v.titleEn;
+    return `
+      <button class="yt-item" onclick="openYouTubeSmart('${v.id}')">
+        <div class="yt-thumb">
+          <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"
+               onerror="this.style.display='none'">
+          <span class="yt-thumb-play">
+            <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </div>
+        <div class="yt-item-info">
+          <div class="yt-item-title">${escapeHtml(title)}</div>
+          <span class="yt-item-url">youtube.com/watch?v=${v.id}</span>
+        </div>
+        <span class="yt-item-arrow">↗</span>
+      </button>
+    `;
+  }).join('');
+}
+function openYouTubeList(){
+  renderYouTubeList();
+  const countEl = document.getElementById('ytCount');
+  if(countEl) countEl.textContent = YT_VIDEOS.length;
+  document.getElementById('ytModal').classList.add('active');
+}
+function closeYouTubeList(e){
+  if(e && e.target !== document.getElementById('ytModal')) return;
+  document.getElementById('ytModal').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎯 دالة ذكية لفتح رابط يوتيوب في التطبيق مباشرة
    ═══════════════════════════════════════════════════════════ */
 function openYouTubeSmart(videoId) {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -1118,8 +1443,11 @@ function openYouTubeSmart(videoId) {
 
   const webUrl = 'https://www.youtube.com/watch?v=' + videoId;
 
+  // إغلاق النافذة المنبثقة أولاً
+  const ytModal = document.getElementById('ytModal');
+  if(ytModal) ytModal.classList.remove('active');
+
   if (isAndroid) {
-    // رابط Intent لأندرويد — يفتح التطبيق مباشرة، مع بديل في المتصفح إذا لم يكن مثبتاً
     const androidUrl =
       'intent://www.youtube.com/watch?v=' + videoId +
       '#Intent;scheme=https;package=com.google.android.youtube;' +
@@ -1129,15 +1457,11 @@ function openYouTubeSmart(videoId) {
   }
 
   if (isIOS) {
-    // رابط عميق لنظام iOS — يفتح تطبيق يوتيوب مباشرة
     const iosUrl = 'vnd.youtube://' + videoId;
     const startTime = Date.now();
     window.location.href = iosUrl;
-
-    // آلية احتياطية: إذا لم يفتح التطبيق (غير مثبت)، افتح الرابط في المتصفح
     setTimeout(function () {
       const elapsed = Date.now() - startTime;
-      // إذا لم تغادر الصفحة خلال ثانية ونصف، يعني التطبيق غير مثبت
       if (elapsed < 2000 && !document.hidden) {
         window.location.href = webUrl;
       }
@@ -1145,7 +1469,6 @@ function openYouTubeSmart(videoId) {
     return;
   }
 
-  // للحاسوب أو أي جهاز آخر — افتح في تبويب جديد
   window.open(webUrl, '_blank');
 }
 
@@ -1229,9 +1552,9 @@ function renderTradingViewWidgets() {
 async function fetchDXYPrice() {
   const dxyContainer = document.getElementById('dxy-custom-widget');
   if (!dxyContainer) return;
-  
+
   dxyContainer.innerHTML = '<span class="spinner"></span>';
-  
+
   try {
     const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1d&range=5d';
     const proxyRes = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(yahooUrl), { cache: 'no-cache' });
@@ -1253,7 +1576,7 @@ async function fetchDXYPrice() {
   } catch (e) {
     console.warn('Yahoo Finance DXY fetch failed:', e.message);
   }
-  
+
   try {
     const ratesUrl = 'https://open.er-api.com/v6/latest/USD';
     const ratesRes = await fetch(ratesUrl, { cache: 'no-cache' });
@@ -1291,7 +1614,7 @@ async function fetchDXYPrice() {
   } catch (e) {
     console.warn('open.er-api.com DXY fetch failed:', e.message);
   }
-  
+
   try {
     const todayRes = await fetch('https://api.frankfurter.app/latest?from=USD', { cache: 'no-cache' });
     if (!todayRes.ok) throw new Error('Frankfurter today failed');
@@ -1302,7 +1625,7 @@ async function fetchDXYPrice() {
     const pastRes = await fetch('https://api.frankfurter.app/' + pastDateStr + '?from=USD', { cache: 'no-cache' });
     if (!pastRes.ok) throw new Error('Frankfurter past failed');
     const pastData = await pastRes.json();
-    
+
     const currentDXY = calculateDXY({
       eurUsd: 1 / todayData.rates.EUR, usdJpy: todayData.rates.JPY,
       gbpUsd: 1 / todayData.rates.GBP, usdCad: todayData.rates.CAD,
@@ -1320,7 +1643,7 @@ async function fetchDXYPrice() {
   } catch (e) {
     console.warn('Frankfurter DXY fetch failed:', e.message);
   }
-  
+
   renderDXYFallback(dxyContainer);
 }
 
@@ -1504,6 +1827,8 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     const modal = document.getElementById('deleteWarningModal');
     if(modal.classList.contains('active')) closeDeleteWarning();
+    const ytModal = document.getElementById('ytModal');
+    if(ytModal && ytModal.classList.contains('active')) closeYouTubeList();
   }
 });
 
@@ -1752,6 +2077,11 @@ function backToMain(){ location.href = 'index.html'; }
   updateThemeIcon();
   loadTable();
   renderTable();
+
+  // تحديث عدد الفيديوهات في الزر
+  const countEl = document.getElementById('ytCount');
+  if(countEl) countEl.textContent = YT_VIDEOS.length;
+
   refresh();
 
   setInterval(refresh, 30000);
