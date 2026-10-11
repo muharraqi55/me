@@ -352,6 +352,7 @@ table.invest-table tfoot td .foot-value{
   text-decoration:none;color:var(--text);
   transition:.25s;position:relative;
   overflow:hidden;
+  cursor:pointer;
 }
 .link-card::before{
   content:'';position:absolute;top:0;right:0;bottom:0;
@@ -793,15 +794,14 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
         <span class="link-arrow">↗</span>
       </a>
-      <a href="https://www.youtube.com/watch?v=Nw2K3VQ8S1Y"
-         target="_blank" rel="noopener noreferrer" class="link-card">
+      <div class="link-card" onclick="openYouTubeSmart('Nw2K3VQ8S1Y')">
         <div class="link-icon">▶️</div>
         <div class="link-info">
           <div class="link-title" data-i18n="link2Title">فيديو يوتيوب</div>
           <span class="link-url">youtube.com / watch</span>
         </div>
         <span class="link-arrow">↗</span>
-      </a>
+      </div>
       <a href="https://www.binance.com/en/proof-of-reserves"
          target="_blank" rel="noopener noreferrer" class="link-card">
         <div class="link-icon">🏦</div>
@@ -811,16 +811,15 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
         <span class="link-arrow">↗</span>
       </a>
-      <!-- ✅ الوصلة الجديدة المضافة -->
-      <a href="https://www.youtube.com/watch?v=7sH8kr2VtLU"
-         target="_blank" rel="noopener noreferrer" class="link-card">
+      <!-- ✅ الوصلة الجديدة المضافة (تفتح مباشرة على تطبيق يوتيوب) -->
+      <div class="link-card" onclick="openYouTubeSmart('7sH8kr2VtLU')">
         <div class="link-icon">▶️</div>
         <div class="link-info">
           <div class="link-title" data-i18n="link4Title">فيديو يوتيوب 2</div>
           <span class="link-url">youtube.com / watch</span>
         </div>
         <span class="link-arrow">↗</span>
-      </a>
+      </div>
     </div>
   </div>
 
@@ -1107,6 +1106,47 @@ function changeFontSize(delta){
 function applyFontSize(){
   document.body.style.fontSize = (14 * fontScale) + 'px';
   document.getElementById('fontVal').textContent = Math.round(fontScale * 100) + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎯 دالة ذكية لفتح رابط يوتيوب في التطبيق مباشرة على جميع الأنظمة
+   ═══════════════════════════════════════════════════════════ */
+function openYouTubeSmart(videoId) {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isAndroid = /android/i.test(ua);
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+  const webUrl = 'https://www.youtube.com/watch?v=' + videoId;
+
+  if (isAndroid) {
+    // رابط Intent لأندرويد — يفتح التطبيق مباشرة، مع بديل في المتصفح إذا لم يكن مثبتاً
+    const androidUrl =
+      'intent://www.youtube.com/watch?v=' + videoId +
+      '#Intent;scheme=https;package=com.google.android.youtube;' +
+      'S.browser_fallback_url=' + encodeURIComponent(webUrl) + ';end';
+    window.location.href = androidUrl;
+    return;
+  }
+
+  if (isIOS) {
+    // رابط عميق لنظام iOS — يفتح تطبيق يوتيوب مباشرة
+    const iosUrl = 'vnd.youtube://' + videoId;
+    const startTime = Date.now();
+    window.location.href = iosUrl;
+
+    // آلية احتياطية: إذا لم يفتح التطبيق (غير مثبت)، افتح الرابط في المتصفح
+    setTimeout(function () {
+      const elapsed = Date.now() - startTime;
+      // إذا لم تغادر الصفحة خلال ثانية ونصف، يعني التطبيق غير مثبت
+      if (elapsed < 2000 && !document.hidden) {
+        window.location.href = webUrl;
+      }
+    }, 1500);
+    return;
+  }
+
+  // للحاسوب أو أي جهاز آخر — افتح في تبويب جديد
+  window.open(webUrl, '_blank');
 }
 
 async function handleRefreshClick(){
