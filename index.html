@@ -9,7 +9,7 @@
   --bg:#0f1720; --card:#16212e; --card2:#1c2a3a;
   --text:#e8eef5; --muted:#8ea0b5; --border:#243547;
   --primary:#4dabf7; --green:#20c997; --red:#fa5252; --gold:#ffc107;
-  --purple:#9775fa;
+  --purple:#9775fa; --cyan:#06b6d4;
   --input-bg:#0f1720;
   --shadow:0 12px 30px rgba(0,0,0,.35);
   --topbar-bg:linear-gradient(135deg,#1c2a3a,#16212e);
@@ -19,7 +19,7 @@ body.light-mode{
   --bg:#f4f6f9; --card:#ffffff; --card2:#f8fafc;
   --text:#1a202c; --muted:#64748b; --border:#e2e8f0;
   --primary:#2563eb; --green:#059669; --red:#dc2626; --gold:#d97706;
-  --purple:#7c3aed;
+  --purple:#7c3aed; --cyan:#0891b2;
   --input-bg:#ffffff;
   --shadow:0 12px 30px rgba(0,0,0,.08);
   --topbar-bg:linear-gradient(135deg,#ffffff,#f8fafc);
@@ -169,6 +169,7 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card.green::before{background:var(--green)}
 .card.red::before{background:var(--red)}
 .card.purple::before{background:var(--purple)}
+.card.cyan::before{background:var(--cyan)}
 .card .label{font-size:.85em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:600}
 .card .value{
   font-family:'Roboto Mono',Consolas,monospace;
@@ -179,9 +180,87 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card .value.red{color:var(--red)}
 .card .value.gold{color:var(--gold)}
 .card .value.purple{color:var(--purple)}
+.card .value.cyan{color:var(--cyan)}
+.card .value.white{color:var(--text)}
 .card .value.neutral{color:var(--muted)}
 .card .hint{font-size:.7em;color:var(--muted);margin-top:8px;font-weight:500;opacity:.85;line-height:1.6}
 .card .hint b{color:var(--text);font-family:'Roboto Mono',monospace}
+
+/* ═══ صف النسبة المئوية داخل بطاقة الفرق ═══ */
+.card .pnl-sub{
+  display:flex;flex-direction:column;gap:6px;
+  margin-top:14px;padding-top:14px;
+  border-top:1px dashed var(--border);
+}
+.card .pnl-sub .sub-label{
+  font-size:.85em;color:var(--muted);
+  font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+.card .pnl-sub .sub-value{
+  font-family:'Roboto Mono',Consolas,monospace;
+  font-size:1.35em;font-weight:800;
+  direction:ltr;text-align:right;
+  letter-spacing:.3px;
+}
+.card .pnl-sub .sub-value.green{color:var(--green)}
+.card .pnl-sub .sub-value.red{color:var(--red)}
+.card .pnl-sub .sub-value.neutral{color:var(--muted)}
+
+/* ═══ بطاقة هرم الأمان المالي ═══ */
+.card .pyramid-sub{
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:12px;padding-top:12px;
+  border-top:1px dashed var(--border);
+}
+.card .pyramid-sub .pyramid-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.82em;color:var(--muted);font-weight:600;gap:8px;
+}
+.card .pyramid-sub .pyramid-row b{
+  color:var(--text);font-family:'Roboto Mono',monospace;
+  font-size:.98em;direction:ltr;
+}
+.card .pyramid-sub .pyramid-row .not-invested{
+  color:var(--gold);font-style:italic;font-size:.88em;font-weight:700;
+}
+.card .pyramid-source{
+  font-size:.65em;color:var(--muted);margin-top:6px;opacity:.7;
+  font-family:'Roboto Mono',monospace;direction:ltr;
+}
+
+/* ═══ صندوق الموجود الفعلي في اليد ═══ */
+.card .pyramid-total-in-hand{
+  margin-top:14px;
+  padding:14px 12px;
+  background:linear-gradient(135deg,rgba(32,201,151,.14),rgba(6,182,212,.10));
+  border:1.5px solid rgba(32,201,151,.45);
+  border-radius:12px;
+  text-align:center;
+}
+.card .pyramid-total-in-hand .sum-label{
+  font-size:.78em;
+  color:var(--muted);
+  font-weight:700;
+  margin-bottom:6px;
+  line-height:1.6;
+}
+.card .pyramid-total-in-hand .sum-hint{
+  font-size:.72em;
+  color:var(--green);
+  font-weight:800;
+  font-style:italic;
+  margin-bottom:8px;
+}
+.card .pyramid-total-in-hand .sum-value{
+  font-family:'Roboto Mono',monospace;
+  font-size:1.55em;
+  font-weight:800;
+  color:var(--green);
+  direction:ltr;
+  letter-spacing:.3px;
+}
+
 .status{
   text-align:center;padding:14px;border-radius:10px;
   background:var(--card);border:1px solid var(--border);
@@ -404,9 +483,6 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   .link-card .link-icon{width:40px;height:40px;font-size:1.2em}
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🎬 زر يوتيوب الرئيسي (YouTube Launcher)
-   ═══════════════════════════════════════════════════════════ */
 .youtube-launcher{
   width:100%;
   display:flex;
@@ -486,9 +562,6 @@ body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
   z-index:1;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🎬 نافذة منبثقة لقائمة الفيديوهات
-   ═══════════════════════════════════════════════════════════ */
 .yt-modal-overlay{
   position:fixed;
   inset:0;
@@ -791,7 +864,6 @@ body[dir="ltr"] .yt-item:hover{ transform:translateX(3px); }
   .warning-body{padding:18px 16px}
 }
 
-/* ═══════ إخفاء البيانات الحساسة ═══════ */
 body.hide-sensitive .card.hideable{ display:none !important; }
 body.hide-sensitive table.invest-table th.col-amount,
 body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
@@ -872,7 +944,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
 <input type="file" id="loadFileInput" accept=".json" style="display:none">
 
-<!-- ═══════ نافذة يوتيوب المنبثقة ═══════ -->
 <div class="yt-modal-overlay" id="ytModal" onclick="closeYouTubeList(event)">
   <div class="yt-modal" onclick="event.stopPropagation()">
     <div class="yt-modal-header">
@@ -949,6 +1020,35 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   </div>
 
   <div class="grid">
+
+    <!-- 🔺 بطاقة الهرم: "لو لم تستثمر كان لديك" -->
+    <div class="card cyan hideable" id="pyramidCard">
+      <div class="label" data-i18n="cardPyramid">لو لم تستثمر كان لديك</div>
+      <div class="value cyan" id="pyramidTotal">—</div>
+      <div class="pyramid-sub">
+        <div class="pyramid-row">
+          <span>📊 <span data-i18n="pyramidSavings">المجموع الكلي للادخار في البنك (بعد خصم السحوبات)</span></span>
+          <b id="pyramidSavingsVal">0.00 $</b>
+        </div>
+        <div class="pyramid-row">
+          <span>📈 <span data-i18n="pyramidInvestment">الاستثمار</span></span>
+          <b id="pyramidInvestmentVal">—</b>
+        </div>
+      </div>
+
+      <!-- صندوق الموجود الفعلي في اليد -->
+      <div class="pyramid-total-in-hand">
+        <div class="sum-label">
+          📊 المجموع الكلي للادخار في البنك (بعد خصم السحوبات)<br>
+          + 💎 إجمالي القيمة الحالية
+        </div>
+        <div class="sum-hint">( الموجود الفعلي في اليد )</div>
+        <div class="sum-value" id="pyramidInHandVal">= 0.00 $</div>
+      </div>
+
+      <div class="pyramid-source" id="pyramidSource"></div>
+    </div>
+
     <div class="card purple hideable">
       <div class="label" data-i18n="cardInvested">💼 إجمالي المبلغ المستثمر (المحفظة)</div>
       <div class="value purple" id="totalInvested">0.00 $</div>
@@ -957,21 +1057,19 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         ➕ <span data-i18n="hintManual">إضافاتك (الجدول):</span> <b id="hintManual">0.00 $</b>
       </div>
     </div>
-    <div class="card gold hideable">
-      <div class="label" data-i18n="cardPnl">📈 إجمالي الربح / الخسارة $</div>
-      <div class="value gold" id="totalPnl">—</div>
-    </div>
     <div class="card green hideable">
       <div class="label" data-i18n="cardCurrent">💎 إجمالي القيمة الحالية</div>
-      <div class="value green" id="totalCurrent">—</div>
+      <div class="value white" id="totalCurrent">—</div>
     </div>
-    <div class="card red">
-      <div class="label" data-i18n="cardPnlPct">📊 إجمالي الربح / الخسارة %</div>
-      <div class="value red" id="totalPnlPct">—</div>
-    </div>
+
+    <!-- ✅ البطاقة المدمجة: الفرق + النسبة المئوية -->
     <div class="card purple">
       <div class="label" data-i18n="cardDiff">🔻 الفرق (إجمالي المستثمر − القيمة الحالية)</div>
       <div class="value purple" id="differenceValue">0.00 $</div>
+      <div class="pnl-sub">
+        <div class="sub-label" data-i18n="cardPnlPct">📊 إجمالي الربح / الخسارة %</div>
+        <div class="sub-value neutral" id="totalPnlPct">—</div>
+      </div>
     </div>
   </div>
 
@@ -1005,7 +1103,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
     </div>
   </div>
 
-  <!-- ═══════ أسعار الأسواق العالمية ═══════ -->
   <div class="market-prices-section">
     <h2 data-i18n="marketPricesTitle">🌍 أسعار الأسواق العالمية</h2>
     <div class="prices-grid">
@@ -1060,7 +1157,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   <div class="links-section">
     <h2 data-i18n="linksTitle">🔗 وصلات تهمك</h2>
 
-    <!-- 🎬 زر يوتيوب الرئيسي -->
     <button class="youtube-launcher" onclick="openYouTubeList()">
       <div class="yt-launcher-icon">
         <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
@@ -1091,26 +1187,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
         <span class="link-arrow">↗</span>
       </a>
-
-      <!-- 🥇 وصلات الذهب المضافة -->
-      <a href="https://en.macromicro.me/charts/78898/world-central-bank-gold-reserves"
-         target="_blank" rel="noopener noreferrer" class="link-card">
-        <div class="link-icon">🥇</div>
-        <div class="link-info">
-          <div class="link-title" data-i18n="linkGoldCentralBankTitle">احتياطيات الذهب للبنوك المركزية العالمية</div>
-          <span class="link-url">en.macromicro.me / World Central Bank Gold Reserves</span>
-        </div>
-        <span class="link-arrow">↗</span>
-      </a>
-      <a href="https://www.gold.org/goldhub/data/gold-reserves-by-country"
-         target="_blank" rel="noopener noreferrer" class="link-card">
-        <div class="link-icon">🌍</div>
-        <div class="link-info">
-          <div class="link-title" data-i18n="linkGoldByCountryTitle">احتياطيات الذهب حسب الدولة</div>
-          <span class="link-url">gold.org / Gold Reserves by Country</span>
-        </div>
-        <span class="link-arrow">↗</span>
-      </a>
     </div>
   </div>
 
@@ -1127,9 +1203,8 @@ const TABLE_KEY = 'muharraqi_portfolio_table_v1';
 const LS_KEY_SETTINGS = 'muharraqi_summary_settings_v1';
 const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
 
-/* ═══════════════════════════════════════════════════════════
-   🎬 قائمة فيديوهات يوتيوب
-   ═══════════════════════════════════════════════════════════ */
+const BHD_TO_USD = 1 / 0.377;
+
 const YT_VIDEOS = [
   { id: '7sH8kr2VtLU', titleAr: 'فيديو يوتيوب 1', titleEn: 'YouTube Video 1' },
   { id: 's1haZKOzV-0', titleAr: 'فيديو يوتيوب 2', titleEn: 'YouTube Video 2' },
@@ -1143,8 +1218,8 @@ let fontScale = 1;
 let hideSensitive = false;
 
 const CURRENCIES = {
-  USD:{symbol:'$',   rate:1,    decimals:2, nameAr:'دولار أمريكي', nameEn:'US Dollar'},
-  BHD:{symbol:'د.ب', rate:0.376, decimals:3, nameAr:'دينار بحريني', nameEn:'Bahraini Dinar'}
+  USD:{symbol:'$',   rate:1,     decimals:2, nameAr:'دولار أمريكي', nameEn:'US Dollar'},
+  BHD:{symbol:'د.ب', rate:0.377, decimals:3, nameAr:'دينار بحريني', nameEn:'Bahraini Dinar'}
 };
 const curInfo = () => CURRENCIES[currentCurrency] || CURRENCIES.USD;
 
@@ -1160,6 +1235,10 @@ const T = {
     cardPnlPct: '📊 إجمالي الربح / الخسارة %',
     cardDiff: '🔻 الفرق (إجمالي المستثمر − القيمة الحالية)',
     hintAuto: 'تلقائي من المحفظة:', hintManual: 'إضافاتك (الجدول):',
+    cardPyramid: 'لو لم تستثمر كان لديك',
+    pyramidSavings: 'المجموع الكلي للادخار في البنك (بعد خصم السحوبات)',
+    pyramidInvestment: 'الاستثمار',
+    pyramidNotInvested: 'لم تستثمر بعد',
     tableTitle: '💼 جدول إضافات على مستثمر المحفظة',
     thName: 'الاسم', thAmount: 'المبلغ المستثمر', thDate: 'التاريخ',
     thNote: 'الملاحظات', thActions: 'إجراءات',
@@ -1195,8 +1274,6 @@ const T = {
     linksTitle: '🔗 وصلات تهمك',
     link1Title: 'خريطة تصفية العقود الآجلة BTC',
     link3Title: 'إثبات الاحتياطيات (Binance)',
-    linkGoldCentralBankTitle: 'احتياطيات الذهب للبنوك المركزية العالمية',
-    linkGoldByCountryTitle: 'احتياطيات الذهب حسب الدولة',
     ytLauncherTitle: 'فيديوهات يوتيوب',
     ytLauncherSub: 'اضغط لعرض قائمة الفيديوهات',
     ytModalTitle: '🎬 قائمة فيديوهات يوتيوب',
@@ -1213,6 +1290,10 @@ const T = {
     cardPnlPct: '📊 Total Profit / Loss %',
     cardDiff: '🔻 Difference (Total Invested − Current Value)',
     hintAuto: 'Auto from portfolio:', hintManual: 'Your additions (table):',
+    cardPyramid: 'If you hadn\'t invested, you would have',
+    pyramidSavings: 'Total Bank Savings (after withdrawals)',
+    pyramidInvestment: 'Investment',
+    pyramidNotInvested: 'Not invested yet',
     tableTitle: '💼 Portfolio Invested Additions Table',
     thName: 'Name', thAmount: 'Invested Amount', thDate: 'Date',
     thNote: 'Notes', thActions: 'Actions',
@@ -1248,8 +1329,6 @@ const T = {
     linksTitle: '🔗 Useful Links',
     link1Title: 'BTC Futures Liquidation Heatmap',
     link3Title: 'Proof of Reserves (Binance)',
-    linkGoldCentralBankTitle: 'World Central Bank Gold Reserves',
-    linkGoldByCountryTitle: 'Gold Reserves by Country',
     ytLauncherTitle: 'YouTube Videos',
     ytLauncherSub: 'Click to view the video list',
     ytModalTitle: '🎬 YouTube Videos List',
@@ -1358,23 +1437,10 @@ function updateCurrencyFab(){
   tip.textContent = tr('tipCurrency');
   fab.appendChild(tip);
 }
+
 function refreshAllCardValues(){
-  if(portfolioCurrentValue >= 0){
-    const pnl = portfolioCurrentValue - portfolioInvestedAuto;
-    const pnlPct = portfolioInvestedAuto > 0 ? (pnl / portfolioInvestedAuto) * 100 : 0;
-
-    document.getElementById('totalPnl').textContent = fmtMoney(pnl, 2);
-    document.getElementById('totalPnlPct').textContent = fmtPct(pnlPct);
-    document.getElementById('totalCurrent').textContent = fmtMoney(portfolioCurrentValue, 2);
-
-    const pnlEl = document.getElementById('totalPnl');
-    pnlEl.classList.remove('green','red','gold');
-    pnlEl.classList.add(pnl > 0 ? 'green' : (pnl < 0 ? 'red' : 'gold'));
-
-    const pctEl = document.getElementById('totalPnlPct');
-    pctEl.classList.remove('green','red','gold');
-    pctEl.classList.add(pnlPct > 0 ? 'green' : (pnlPct < 0 ? 'red' : 'gold'));
-  }
+  const curEl = document.getElementById('totalCurrent');
+  if (curEl) curEl.textContent = fmtMoney(portfolioCurrentValue, 2);
 }
 
 function toggleTheme(){
@@ -1397,7 +1463,6 @@ function updateThemeIcon(){
   fab.appendChild(tip);
 }
 
-/* ═══════ إخفاء/إظهار البيانات الحساسة ═══════ */
 function applyHideSensitive(){
   document.body.classList.toggle('hide-sensitive', hideSensitive);
   const icon = document.getElementById('fabHideIcon');
@@ -1418,6 +1483,163 @@ function changeFontSize(delta){
 function applyFontSize(){
   document.body.style.fontSize = (14 * fontScale) + 'px';
   document.getElementById('fontVal').textContent = Math.round(fontScale * 100) + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🔺 دوال هرم الأمان المالي (النسخة v9)
+   ═══════════════════════════════════════════════════════════ */
+
+function findCapitalManagerData() {
+  const allKeys = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k) allKeys.push({ storage: localStorage, key: k });
+    }
+  } catch (e) {}
+  try {
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i);
+      if (k) allKeys.push({ storage: sessionStorage, key: k });
+    }
+  } catch (e) {}
+
+  for (const { storage, key } of allKeys) {
+    if (key === LS_KEY_DATA || key === TABLE_KEY || key === LS_KEY_SETTINGS) continue;
+    try {
+      const val = storage.getItem(key);
+      if (!val || val.length < 100) continue;
+      const parsed = JSON.parse(val);
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        parsed.years &&
+        typeof parsed.years === 'object' &&
+        (parsed.pyramidTargets || parsed.pyramidWithdrawals)
+      ) {
+        return parsed;
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+function calculatePyramidTotals(data) {
+  const result = {
+    bankSavingsBHD: 0,
+    investmentBHD: 0,
+    bankSavingsUSD: 0,
+    investmentUSD: 0,
+    categories: {},
+    hasData: false
+  };
+  if (!data || !data.years) return result;
+
+  const bankCategories = [
+    'emergencyFund', 'insuranceSaving', 'obligationsSaving',
+    'travelSaving', 'eidClothes', 'eidMoneySaving', 'hajj', 'assembly'
+  ];
+
+  let bestMonth = null;
+  let bestSum = 0;
+  for (const year of Object.keys(data.years)) {
+    const months = data.years[year];
+    if (!Array.isArray(months)) continue;
+    for (const m of months) {
+      if (!m || typeof m !== 'object') continue;
+      let sum = 0;
+      for (const cat of bankCategories) {
+        const v = parseNum(m[cat]);
+        if (v > 0) sum += v;
+      }
+      if (sum > bestSum) { bestSum = sum; bestMonth = m; }
+    }
+  }
+  if (bestMonth) {
+    for (const cat of bankCategories) {
+      const v = parseNum(bestMonth[cat]);
+      result.categories[cat] = v;
+      result.bankSavingsBHD += v;
+    }
+  }
+
+  let invBHD = 0;
+  for (const year of Object.keys(data.years)) {
+    const months = data.years[year];
+    if (!Array.isArray(months)) continue;
+    for (const m of months) {
+      if (!m || typeof m !== 'object') continue;
+      invBHD += parseNum(m.investment);
+      if (Array.isArray(m.investmentExtra)) {
+        m.investmentExtra.forEach(e => { invBHD += parseNum(e && e.amount); });
+      }
+    }
+  }
+  if (data.pyramidWithdrawals && Array.isArray(data.pyramidWithdrawals.investment)) {
+    data.pyramidWithdrawals.investment.forEach(w => { invBHD -= parseNum(w && w.amount); });
+  }
+  result.investmentBHD = Math.max(0, invBHD);
+  result.categories.investment = result.investmentBHD;
+
+  result.bankSavingsUSD = result.bankSavingsBHD * BHD_TO_USD;
+  result.investmentUSD = result.investmentBHD * BHD_TO_USD;
+
+  result.hasData = true;
+  return result;
+}
+
+function updatePyramidCard() {
+  const savingsEl = document.getElementById('pyramidSavingsVal');
+  const investEl  = document.getElementById('pyramidInvestmentVal');
+  const totalEl   = document.getElementById('pyramidTotal');
+  const sourceEl  = document.getElementById('pyramidSource');
+  const inHandEl  = document.getElementById('pyramidInHandVal');
+  if (!savingsEl || !investEl || !totalEl) return;
+
+  const data = findCapitalManagerData();
+  const totals = calculatePyramidTotals(data);
+
+  const savingsUSD = totals.bankSavingsUSD;
+  const investmentUSD = totals.investmentUSD;
+  const totalUSD = savingsUSD + investmentUSD;
+
+  savingsEl.textContent = fmtMoney(savingsUSD, 2);
+
+  if (Math.abs(investmentUSD) > 0.01) {
+    investEl.textContent = fmtMoney(investmentUSD, 2);
+    investEl.classList.remove('not-invested');
+  } else {
+    investEl.textContent = tr('pyramidNotInvested');
+    investEl.classList.add('not-invested');
+  }
+
+  totalEl.textContent = fmtMoney(totalUSD, 2);
+
+  if (inHandEl) {
+    const inHand = savingsUSD + (portfolioCurrentValue || 0);
+    inHandEl.textContent = '= ' + fmtMoney(inHand, 2);
+  }
+
+  if (sourceEl) {
+    if (data && totals.hasData) {
+      const bhdFmt = fmtWithCommas(totals.bankSavingsBHD, 3) + ' د.ب';
+      const invBhdFmt = fmtWithCommas(totals.investmentBHD, 3) + ' د.ب';
+      sourceEl.textContent = `BHD: ${bhdFmt} + ${invBhdFmt} (× ${BHD_TO_USD.toFixed(4)} = USD)`;
+    } else {
+      sourceEl.textContent = '';
+    }
+  }
+
+  if (window.console && console.log) {
+    console.log('🔺 Pyramid v9:', {
+      source: data ? 'capital_manager ✓' : 'NOT FOUND ✗',
+      bankBHD: totals.bankSavingsBHD,
+      investmentBHD: totals.investmentBHD,
+      totalUSD: totalUSD,
+      currentValueUSD: portfolioCurrentValue,
+      inHandUSD: savingsUSD + portfolioCurrentValue
+    });
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1457,17 +1679,11 @@ function closeYouTubeList(e){
   document.getElementById('ytModal').classList.remove('active');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🎯 دالة ذكية لفتح رابط يوتيوب في التطبيق مباشرة
-   ═══════════════════════════════════════════════════════════ */
 function openYouTubeSmart(videoId) {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   const isAndroid = /android/i.test(ua);
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-
   const webUrl = 'https://www.youtube.com/watch?v=' + videoId;
-
-  // إغلاق النافذة المنبثقة أولاً
   const ytModal = document.getElementById('ytModal');
   if(ytModal) ytModal.classList.remove('active');
 
@@ -1507,6 +1723,7 @@ async function handleRefreshClick(){
 
   try{
     await refresh();
+    updatePyramidCard();
     renderTradingViewWidgets();
     fetchDXYPrice();
     showToast(tr('refreshSuccess'), 'success');
@@ -1724,7 +1941,7 @@ function saveDataToFile(){
     const themeName = document.body.classList.contains('light-mode') ? 'light' : 'dark';
 
     const jsonData = {
-      app: 'Muharraqi Summary Page', version: '1.3',
+      app: 'Muharraqi Summary Page', version: '1.7',
       savedAt: now.toISOString(),
       settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale, hideSensitive: hideSensitive },
       table: tableRows,
@@ -1736,17 +1953,20 @@ function saveDataToFile(){
     const line = '═══════════════════════════════════════════════════';
     let txt = '';
     txt += line + '\n📊 ملخص المحفظة — Muharraqi Pro Edition\n' + line + '\n';
-    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.3\n\n';
+    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.7\n\n';
     txt += '═══ ⚙️ الإعدادات ═══\n';
     txt += 'language=' + currentLang + '\ncurrency=' + currentCurrency + '\n';
     txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n';
     txt += 'hideSensitive=' + hideSensitive + '\n\n';
     txt += '═══ 📊 ملخص البطاقات ═══\n';
+    txt += 'لو لم تستثمر كان لديك           : ' + (document.getElementById('pyramidTotal')?.textContent || '—') + '\n';
+    txt += 'ادخار البنك                    : ' + (document.getElementById('pyramidSavingsVal')?.textContent || '—') + '\n';
+    txt += 'الاستثمار                      : ' + (document.getElementById('pyramidInvestmentVal')?.textContent || '—') + '\n';
+    txt += 'الموجود الفعلي في اليد         : ' + (document.getElementById('pyramidInHandVal')?.textContent || '—') + '\n';
     txt += 'إجمالي المبلغ المستثمر (المحفظة): ' + (document.getElementById('totalInvested')?.textContent || '—') + '\n';
-    txt += 'إجمالي الربح / الخسارة $        : ' + (document.getElementById('totalPnl')?.textContent || '—') + '\n';
     txt += 'إجمالي القيمة الحالية           : ' + (document.getElementById('totalCurrent')?.textContent || '—') + '\n';
-    txt += 'إجمالي الربح / الخسارة %       : ' + (document.getElementById('totalPnlPct')?.textContent || '—') + '\n';
-    txt += 'الفرق (المستثمر − القيمة)       : ' + (document.getElementById('differenceValue')?.textContent || '—') + '\n\n';
+    txt += 'الفرق (المستثمر − القيمة)       : ' + (document.getElementById('differenceValue')?.textContent || '—') + '\n';
+    txt += 'إجمالي الربح / الخسارة %       : ' + (document.getElementById('totalPnlPct')?.textContent || '—') + '\n\n';
     txt += '═══ 📋 جدول الإضافات ═══\n';
     txt += '# | الاسم | المبلغ | التاريخ | الملاحظات\n';
     txt += '───────────────────────────────────────────────────\n';
@@ -1811,6 +2031,7 @@ document.getElementById('loadFileInput').addEventListener('change', function(e){
       updateThemeIcon();
       renderTable();
       refresh();
+      updatePyramidCard();
       showToast(tr('loadSuccess'), 'success');
     }catch(err){
       console.warn(err);
@@ -1841,6 +2062,7 @@ function executeDeleteAll(){
   updateCurrencyFab();
   updateThemeIcon();
   refresh();
+  updatePyramidCard();
   closeDeleteWarning();
   showToast(tr('deletedSuccess'), 'success');
 }
@@ -1955,15 +2177,49 @@ function updateAllTotals(){
   if(hintAuto) hintAuto.textContent = fmtMoney(portfolioInvestedAuto, 2);
   if(hintManual) hintManual.textContent = fmtMoney(manualTotal, 2);
 
+  // ═══════════════════════════════════════════════════════════
+  // 🔻 الفرق (إجمالي المستثمر − القيمة الحالية)
+  // ═══════════════════════════════════════════════════════════
+  const rawDiff = totalPortfolioInvested - portfolioCurrentValue;
+  const absDiff = Math.abs(rawDiff);
+
   const diffEl = document.getElementById('differenceValue');
   if(diffEl){
-    const diff = totalPortfolioInvested - portfolioCurrentValue;
-    diffEl.textContent = fmtMoney(diff, 2);
+    let diffText, colorClass;
+    if (absDiff < 0.01) {
+      diffText = fmtMoney(0, 2);
+      colorClass = 'neutral';
+    } else if (rawDiff > 0) {
+      diffText = '-' + fmtMoney(absDiff, 2);
+      colorClass = 'red';
+    } else {
+      diffText = '+' + fmtMoney(absDiff, 2);
+      colorClass = 'green';
+    }
+    diffEl.textContent = diffText;
     diffEl.classList.remove('green','red','purple','neutral');
-    if(Math.abs(diff) < 0.01) diffEl.classList.add('neutral');
-    else if(diff > 0) diffEl.classList.add('red');
-    else diffEl.classList.add('green');
+    diffEl.classList.add(colorClass);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // 📊 إجمالي الربح / الخسارة % — مرتبطة بالفرق أعلاه
+  // ═══════════════════════════════════════════════════════════
+  const pctEl = document.getElementById('totalPnlPct');
+  if (pctEl) {
+    if (totalPortfolioInvested > 0.01 && absDiff >= 0.01) {
+      const pct = -(rawDiff / totalPortfolioInvested) * 100;
+      const sign = pct > 0 ? '+' : '';
+      pctEl.textContent = sign + fmtWithCommas(pct, 2) + ' %';
+      pctEl.classList.remove('green','red','gold','neutral');
+      pctEl.classList.add(pct > 0 ? 'green' : (pct < 0 ? 'red' : 'neutral'));
+    } else {
+      pctEl.textContent = fmtPct(0);
+      pctEl.classList.remove('green','red','gold','neutral');
+      pctEl.classList.add('neutral');
+    }
+  }
+
+  updatePyramidCard();
 }
 
 function calcSummaryPrices(prices){
@@ -2102,14 +2358,16 @@ function backToMain(){ location.href = 'index.html'; }
   loadTable();
   renderTable();
 
-  // تحديث عدد الفيديوهات في الزر
   const countEl = document.getElementById('ytCount');
   if(countEl) countEl.textContent = YT_VIDEOS.length;
+
+  updatePyramidCard();
 
   refresh();
 
   setInterval(refresh, 30000);
   setInterval(fetchDXYPrice, 30000);
+  setInterval(updatePyramidCard, 5000);
 })();
 </script>
 </body>
