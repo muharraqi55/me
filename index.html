@@ -26,12 +26,15 @@ body.light-mode{
   --modal-bg:rgba(15,23,32,.6);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
 body{
   font-family:'Segoe UI',Tahoma,Arial,sans-serif;
   background:radial-gradient(1200px 600px at 50% -10%, #1b2b3d 0%, var(--bg) 60%);
   color:var(--text); min-height:100vh; padding:0;
   transition:background .3s, color .3s;
   font-size:14px;
+  overflow-x:hidden;
+  max-width:100vw;
 }
 body.light-mode{
   background:radial-gradient(1200px 600px at 50% -10%, #e0e7ff 0%, var(--bg) 60%);
@@ -152,16 +155,24 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .btn.ghost{background:transparent;border:2px solid var(--border);color:var(--text)}
 .btn.green{background:linear-gradient(135deg,#20c997,#12b886)}
 .btn.red{background:linear-gradient(135deg,#fa5252,#e03131);padding:6px 12px;font-size:.8em}
+
+/* ═══════════════════════════════════════════════════════════
+   ✅ إصلاح شبكة البطاقات — لا تتجاوز عرض الشاشة أبداً
+   ═══════════════════════════════════════════════════════════ */
 .grid{
   display:grid;gap:18px;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(min(100%, 260px),1fr));
   margin-bottom:30px;
+  width:100%;
 }
+.grid > *{ min-width:0; max-width:100%; }
+
 .card{
   background:linear-gradient(160deg,var(--card),var(--card2));
   border:1px solid var(--border);border-radius:16px;padding:22px;
   position:relative;overflow:hidden;transition:.3s;
   display:flex;flex-direction:column;
+  min-width:0;
 }
 .card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
 .card::before{content:'';position:absolute;top:0;right:0;left:0;height:4px;background:var(--primary)}
@@ -170,11 +181,12 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card.red::before{background:var(--red)}
 .card.purple::before{background:var(--purple)}
 .card.cyan::before{background:var(--cyan)}
-.card .label{font-size:.85em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:600}
+.card .label{font-size:.85em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:600;line-height:1.4}
 .card .value{
   font-family:'Roboto Mono',Consolas,monospace;
   font-size:1.7em;font-weight:700;direction:ltr;text-align:right;
-  word-break:break-all;line-height:1.2;
+  overflow-wrap:anywhere;word-break:break-word;line-height:1.2;
+  max-width:100%;
 }
 .card .value.green{color:var(--green)}
 .card .value.red{color:var(--red)}
@@ -196,12 +208,14 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   font-size:.85em;color:var(--muted);
   font-weight:600;
   display:flex;align-items:center;gap:6px;
+  line-height:1.4;
 }
 .card .pnl-sub .sub-value{
   font-family:'Roboto Mono',Consolas,monospace;
   font-size:1.35em;font-weight:800;
   direction:ltr;text-align:right;
   letter-spacing:.3px;
+  overflow-wrap:anywhere;word-break:break-word;
 }
 .card .pnl-sub .sub-value.green{color:var(--green)}
 .card .pnl-sub .sub-value.red{color:var(--red)}
@@ -216,10 +230,12 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card .pyramid-sub .pyramid-row{
   display:flex;justify-content:space-between;align-items:center;
   font-size:.82em;color:var(--muted);font-weight:600;gap:8px;
+  flex-wrap:wrap;
 }
 .card .pyramid-sub .pyramid-row b{
   color:var(--text);font-family:'Roboto Mono',monospace;
   font-size:.98em;direction:ltr;
+  overflow-wrap:anywhere;word-break:break-word;
 }
 .card .pyramid-sub .pyramid-row .not-invested{
   color:var(--gold);font-style:italic;font-size:.88em;font-weight:700;
@@ -227,6 +243,7 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card .pyramid-source{
   font-size:.65em;color:var(--muted);margin-top:6px;opacity:.7;
   font-family:'Roboto Mono',monospace;direction:ltr;
+  overflow-wrap:anywhere;word-break:break-word;
 }
 
 /* ═══ صندوق الموجود الفعلي في اليد ═══ */
@@ -259,6 +276,7 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   color:var(--green);
   direction:ltr;
   letter-spacing:.3px;
+  overflow-wrap:anywhere;word-break:break-word;
 }
 
 .status{
@@ -280,9 +298,11 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 
 .prices-grid{
   display:grid;gap:18px;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(min(100%, 260px),1fr));
   margin-bottom:0;
+  width:100%;
 }
+.prices-grid > *{ min-width:0; max-width:100%; }
 .card.btc::before{background:linear-gradient(90deg,#f7931a,#ffb347)}
 .card.doge::before{background:linear-gradient(90deg,#c2a633,#e0c94d)}
 .card.xrp::before{background:linear-gradient(90deg,#0091ff,#4dabf7)}
@@ -326,6 +346,8 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   border:1px solid var(--border);border-radius:16px;
   padding:22px;margin-top:30px;
   border-top:4px solid var(--purple);
+  max-width:100%;
+  overflow:hidden;
 }
 .table-header{
   display:flex;justify-content:space-between;align-items:center;
@@ -333,7 +355,7 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   padding-bottom:14px;border-bottom:2px solid var(--border);
 }
 .table-header h2{font-size:1.15em;color:var(--purple);display:flex;align-items:center;gap:8px}
-.table-wrapper{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+.table-wrapper{overflow-x:auto;border-radius:10px;border:1px solid var(--border);max-width:100%}
 table.invest-table{width:100%;border-collapse:collapse;min-width:720px;background:var(--card)}
 table.invest-table thead{background:linear-gradient(135deg,#1c2a3a,#16212e)}
 body.light-mode table.invest-table thead{background:linear-gradient(135deg,#f1f5f9,#e2e8f0)}
@@ -391,6 +413,8 @@ table.invest-table tfoot td .foot-value{
   border:1px solid var(--border);border-radius:16px;
   padding:22px;margin-top:30px;
   border-top:4px solid var(--gold);
+  max-width:100%;
+  overflow:hidden;
 }
 .market-prices-section h2{
   font-size:1.15em;color:var(--gold);
@@ -412,6 +436,8 @@ table.invest-table tfoot td .foot-value{
   border:1px solid var(--border);border-radius:16px;
   padding:22px;margin-top:30px;
   border-top:4px solid var(--primary);
+  max-width:100%;
+  overflow:hidden;
 }
 .links-section h2{
   font-size:1.15em;color:var(--primary);
@@ -421,8 +447,9 @@ table.invest-table tfoot td .foot-value{
 }
 .links-grid{
   display:grid;gap:14px;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(min(100%, 260px),1fr));
 }
+.links-grid > *{ min-width:0; max-width:100%; }
 .link-card{
   display:flex;align-items:center;gap:14px;
   padding:16px 18px;border-radius:12px;
@@ -477,11 +504,6 @@ table.invest-table tfoot td .foot-value{
   color:var(--primary);transform:translateX(-4px);
 }
 body[dir="ltr"] .link-card:hover .link-arrow{transform:translateX(4px)}
-@media (max-width:560px){
-  .links-grid{grid-template-columns:1fr}
-  .link-card{padding:14px}
-  .link-card .link-icon{width:40px;height:40px;font-size:1.2em}
-}
 
 .youtube-launcher{
   width:100%;
@@ -858,39 +880,96 @@ body[dir="ltr"] .yt-item:hover{ transform:translateX(3px); }
   transform:translateY(0);
   box-shadow:0 2px 8px rgba(220,38,38,.5);
 }
-@media (max-width:560px){
-  .warning-actions{grid-template-columns:1fr}
-  .warning-header h3{font-size:1.15em}
-  .warning-body{padding:18px 16px}
-}
 
 body.hide-sensitive .card.hideable{ display:none !important; }
 body.hide-sensitive table.invest-table th.col-amount,
 body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
+/* ═══════════════════════════════════════════════════════════
+   📱 إصلاحات الهواتف — لا تفيض الشاشة أبداً
+   ═══════════════════════════════════════════════════════════ */
+
+/* التابلت (≤900px) */
 @media (max-width:900px){
+  body{ padding-bottom:110px; }
   .floating-bar{
-    right:8px;top:auto;bottom:20px;transform:none;
-    flex-direction:row;gap:8px;
+    right:6px;top:auto;bottom:12px;transform:none;
+    flex-direction:row;gap:6px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:calc(100vw - 12px);
+    z-index:1000;
   }
-  body[dir="ltr"] .floating-bar{left:8px;right:auto}
-  .fab{width:44px;height:44px;font-size:1.1em}
+  body[dir="ltr"] .floating-bar{left:6px;right:auto}
+  .fab{width:40px;height:40px;font-size:1em;border-width:1.5px}
   .fab .tooltip{display:none}
 }
-@media (max-width:768px){
-  table.invest-table tbody td{padding:8px 6px;font-size:.82em}
-  table.invest-table tbody td input,
-  table.invest-table tbody td textarea{padding:6px 8px;font-size:.85em}
-  .table-header h2{font-size:1em}
-  .topbar{padding:10px 12px}
-  .topbar .brand{font-size:.95em}
+
+/* الهواتف (≤600px) — عمود واحد */
+@media (max-width:600px){
+  .grid{
+    grid-template-columns:1fr !important;
+    gap:14px;
+  }
+  .prices-grid{
+    grid-template-columns:1fr !important;
+    gap:14px;
+  }
+  .links-grid{
+    grid-template-columns:1fr !important;
+  }
+  .card{
+    padding:16px 14px;
+  }
+  .card .value{
+    font-size:1.35em;
+  }
+  .card .pnl-sub .sub-value{
+    font-size:1.15em;
+  }
+  .card .pyramid-total-in-hand .sum-value{
+    font-size:1.25em;
+  }
+  .wrap{
+    padding:20px 12px;
+  }
+  h1{ font-size:1.3em; }
+  .sub{ font-size:.8em; }
+  .table-section,
+  .market-prices-section,
+  .links-section{
+    padding:16px 14px;
+  }
+  .table-header h2{ font-size:1em; }
 }
-@media (max-width:560px){
-  .yt-thumb{width:88px; height:52px;}
-  .yt-item-title{font-size:.88em;}
-  .youtube-launcher{padding:14px 16px;gap:12px;}
-  .yt-launcher-icon{width:44px;height:44px;}
-  .yt-launcher-title{font-size:.95em;}
+
+/* الهواتف الصغيرة جداً (≤400px) */
+@media (max-width:400px){
+  .wrap{
+    padding:16px 10px;
+  }
+  .card{
+    padding:14px 12px;
+    border-radius:14px;
+  }
+  .card .value{
+    font-size:1.15em;
+  }
+  .card .label{
+    font-size:.78em;
+  }
+  .card .pnl-sub .sub-value{
+    font-size:1em;
+  }
+  .card .pyramid-total-in-hand .sum-value{
+    font-size:1.1em;
+  }
+  .fab{width:36px;height:36px;font-size:.9em}
+  .topbar{padding:10px 10px}
+  .topbar .brand{font-size:.9em}
+  .lang-switch button{padding:6px 10px;font-size:.75em}
+  .font-controls button{padding:6px 8px;min-width:30px;font-size:.8em}
+  .font-controls .font-val{min-width:42px;font-size:.7em}
 }
 </style>
 </head>
@@ -1021,7 +1100,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
   <div class="grid">
 
-    <!-- 🔺 بطاقة الهرم: "لو لم تستثمر كان لديك" -->
     <div class="card cyan hideable" id="pyramidCard">
       <div class="label" data-i18n="cardPyramid">لو لم تستثمر كان لديك</div>
       <div class="value cyan" id="pyramidTotal">—</div>
@@ -1036,7 +1114,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         </div>
       </div>
 
-      <!-- صندوق الموجود الفعلي في اليد -->
       <div class="pyramid-total-in-hand">
         <div class="sum-label">
           📊 المجموع الكلي للادخار في البنك (بعد خصم السحوبات)<br>
@@ -1057,12 +1134,12 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
         ➕ <span data-i18n="hintManual">إضافاتك (الجدول):</span> <b id="hintManual">0.00 $</b>
       </div>
     </div>
+
     <div class="card green hideable">
       <div class="label" data-i18n="cardCurrent">💎 إجمالي القيمة الحالية</div>
       <div class="value white" id="totalCurrent">—</div>
     </div>
 
-    <!-- ✅ البطاقة المدمجة: الفرق + النسبة المئوية -->
     <div class="card purple">
       <div class="label" data-i18n="cardDiff">🔻 الفرق (إجمالي المستثمر − القيمة الحالية)</div>
       <div class="value purple" id="differenceValue">0.00 $</div>
@@ -1629,22 +1706,8 @@ function updatePyramidCard() {
       sourceEl.textContent = '';
     }
   }
-
-  if (window.console && console.log) {
-    console.log('🔺 Pyramid v9:', {
-      source: data ? 'capital_manager ✓' : 'NOT FOUND ✗',
-      bankBHD: totals.bankSavingsBHD,
-      investmentBHD: totals.investmentBHD,
-      totalUSD: totalUSD,
-      currentValueUSD: portfolioCurrentValue,
-      inHandUSD: savingsUSD + portfolioCurrentValue
-    });
-  }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🎬 دوال قائمة يوتيوب
-   ═══════════════════════════════════════════════════════════ */
 function renderYouTubeList(){
   const list = document.getElementById('ytList');
   if(!list) return;
@@ -1941,7 +2004,7 @@ function saveDataToFile(){
     const themeName = document.body.classList.contains('light-mode') ? 'light' : 'dark';
 
     const jsonData = {
-      app: 'Muharraqi Summary Page', version: '1.7',
+      app: 'Muharraqi Summary Page', version: '1.8',
       savedAt: now.toISOString(),
       settings: { lang: currentLang, currency: currentCurrency, theme: themeName, fontScale: fontScale, hideSensitive: hideSensitive },
       table: tableRows,
@@ -1953,7 +2016,7 @@ function saveDataToFile(){
     const line = '═══════════════════════════════════════════════════';
     let txt = '';
     txt += line + '\n📊 ملخص المحفظة — Muharraqi Pro Edition\n' + line + '\n';
-    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.7\n\n';
+    txt += 'التاريخ: ' + now.toLocaleString('ar-EG') + '\nالإصدار: 1.8\n\n';
     txt += '═══ ⚙️ الإعدادات ═══\n';
     txt += 'language=' + currentLang + '\ncurrency=' + currentCurrency + '\n';
     txt += 'theme=' + themeName + '\nfontScale=' + fontScale + '\n';
@@ -2177,9 +2240,6 @@ function updateAllTotals(){
   if(hintAuto) hintAuto.textContent = fmtMoney(portfolioInvestedAuto, 2);
   if(hintManual) hintManual.textContent = fmtMoney(manualTotal, 2);
 
-  // ═══════════════════════════════════════════════════════════
-  // 🔻 الفرق (إجمالي المستثمر − القيمة الحالية)
-  // ═══════════════════════════════════════════════════════════
   const rawDiff = totalPortfolioInvested - portfolioCurrentValue;
   const absDiff = Math.abs(rawDiff);
 
@@ -2201,9 +2261,6 @@ function updateAllTotals(){
     diffEl.classList.add(colorClass);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📊 إجمالي الربح / الخسارة % — مرتبطة بالفرق أعلاه
-  // ═══════════════════════════════════════════════════════════
   const pctEl = document.getElementById('totalPnlPct');
   if (pctEl) {
     if (totalPortfolioInvested > 0.01 && absDiff >= 0.01) {
