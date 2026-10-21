@@ -1364,9 +1364,6 @@ function escapeHtml(s){
   })[c]);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   دوال مساعدة لاستخراج العملات والأسعار من البيانات المحفوظة
-   ═══════════════════════════════════════════════════════════ */
 function getCoinsFromData(parsed) {
   if (!parsed || typeof parsed !== 'object') return {};
   const c = parsed.coins;
@@ -1505,10 +1502,6 @@ function applyFontSize(){
   document.body.style.fontSize = (14 * fontScale) + 'px';
   document.getElementById('fontVal').textContent = Math.round(fontScale * 100) + '%';
 }
-
-/* ═══════════════════════════════════════════════════════════
-   دوال هرم الأمان المالي
-   ═══════════════════════════════════════════════════════════ */
 
 function findCapitalManagerData() {
   const allKeys = [];
@@ -1652,9 +1645,6 @@ function updatePyramidCard() {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   دوال قائمة يوتيوب
-   ═══════════════════════════════════════════════════════════ */
 function renderYouTubeList(){
   const list = document.getElementById('ytList');
   if(!list) return;
@@ -2226,9 +2216,6 @@ function updateAllTotals(){
   updatePyramidCard();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   حساب ملخص الأسعار — يشمل العملات الرقمية والأسهم
-   ═══════════════════════════════════════════════════════════ */
 function calcSummaryPrices(prices){
   const saved = localStorage.getItem(LS_KEY_DATA);
   if(!saved) return {invested:0,current:0,pnl:0,pnlPct:0,coins:0};
@@ -2285,25 +2272,8 @@ function calcSummaryPrices(prices){
 async function fetchPrice(symbol, assetType){
   const base = baseSymbol(symbol);
   
-  // 1. جلب أسعار الأسهم من Yahoo Finance
-  if (assetType === 'stock' || (!base.endsWith('USDT') && !base.includes('USDT'))) {
-    try {
-      const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + base + '?interval=1d&range=5d';
-      const proxyRes = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(yahooUrl), { cache: 'no-cache' });
-      if (proxyRes.ok) {
-        const yahooData = await proxyRes.json();
-        const result = yahooData?.chart?.result?.[0];
-        if (result) {
-          const currentPrice = result.meta.regularMarketPrice;
-          if (currentPrice && currentPrice > 0) return currentPrice;
-        }
-      }
-    } catch (e) {
-      console.warn('Yahoo Finance fetch failed for ' + base, e.message);
-    }
-  }
-
-  // 2. جلب أسعار العملات الرقمية من Binance والمنصات الأخرى
+  // ⚡ الأسهم سيتم جلبها من السعر المحفوظ (currentMarketPrices) لضمان مطابقة التطبيق الرئيسي
+  // لأن التطبيق الرئيسي يقوم بتحويل عملات الأسهم (مثل الدينار) إلى دولار
   try{
     const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+base);
     if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p) && p>0) return p; }
@@ -2366,7 +2336,7 @@ async function refresh(){
     batch.forEach((s,idx)=>{ prices[s]=results[idx]; });
   }
 
-  // fallback للسعر المحفوظ إذا فشل الجلب
+  // 🎯 استخدام السعر المحفوظ في currentMarketPrices كخطة بديلة (للأسهم والعملات)
   const cachedPrices = getCachedPrices(parsed);
   for (const sym of symbols) {
     if (!prices[sym] || prices[sym] <= 0) {
