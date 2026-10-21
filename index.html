@@ -2245,18 +2245,15 @@ function calcSummaryPrices(prices){
     let coinInvested = initQty>0 ? initAmt*(initRemain/initQty) : 0;
 
     (d.repurchases||[]).forEach(rp=>{
-      const savedAmt = parseNum(rp.savedAmount);
       const rpAmt    = parseNum(rp.amount);
-      const isSaved  = savedAmt>0.0001 && Math.abs(rpAmt-savedAmt)<=0.001;
-      if(!isSaved) return;
-      const rpPrice = parseNum(rp.price);
-      if(rpPrice<=0) return;
-      const rpQty = rpAmt/rpPrice;
+      const rpPrice  = parseNum(rp.price);
+      if (rpAmt <= 0 || rpPrice <= 0) return; // تخطي الإدخالات غير الصالحة
+      const rpQty = rpAmt / rpPrice;
       const sold  = (rp.sales||[]).reduce((s,x)=>s+parseNum(x.qty),0);
-      const remain= Math.max(0, rpQty-sold);
-      if(remain>0){
+      const remain= Math.max(0, rpQty - sold);
+      if(remain > 0){
         coinQty += remain;
-        coinInvested += rpAmt*(remain/rpQty);
+        coinInvested += rpAmt * (remain / rpQty);
       }
     });
 
