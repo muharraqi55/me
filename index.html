@@ -186,7 +186,6 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card .hint{font-size:.7em;color:var(--muted);margin-top:8px;font-weight:500;opacity:.85;line-height:1.6}
 .card .hint b{color:var(--text);font-family:'Roboto Mono',monospace}
 
-/* ═══ صف النسبة المئوية داخل بطاقة الفرق ═══ */
 .card .pnl-sub{
   display:flex;flex-direction:column;gap:6px;
   margin-top:14px;padding-top:14px;
@@ -207,7 +206,6 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
 .card .pnl-sub .sub-value.red{color:var(--red)}
 .card .pnl-sub .sub-value.neutral{color:var(--muted)}
 
-/* ═══ بطاقة هرم الأمان المالي ═══ */
 .card .pyramid-sub{
   display:flex;flex-direction:column;gap:8px;
   margin-top:12px;padding-top:12px;
@@ -229,7 +227,6 @@ h1{text-align:center;font-size:1.6em;margin-bottom:6px;color:var(--primary)}
   font-family:'Roboto Mono',monospace;direction:ltr;
 }
 
-/* ═══ صندوق الموجود الفعلي في اليد ═══ */
 .card .pyramid-total-in-hand{
   margin-top:14px;
   padding:14px 12px;
@@ -1365,6 +1362,29 @@ function escapeHtml(s){
   })[c]);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   🆕 دوال مساعدة لاستخراج العملات والأسعار من البيانات المحفوظة
+   (تدعم الصيغة القديمة coins[key] والصيغة الجديدة coins.allCoinData[key])
+   ═══════════════════════════════════════════════════════════ */
+function getCoinsFromData(parsed) {
+  if (!parsed || typeof parsed !== 'object') return {};
+  const c = parsed.coins;
+  if (!c || typeof c !== 'object') return {};
+  if (c.allCoinData && typeof c.allCoinData === 'object') return c.allCoinData;
+  return c;
+}
+function getCachedPrices(parsed) {
+  if (!parsed || typeof parsed !== 'object') return {};
+  const c = parsed.coins;
+  if (c && c.currentMarketPrices && typeof c.currentMarketPrices === 'object') return c.currentMarketPrices;
+  if (parsed.currentMarketPrices && typeof parsed.currentMarketPrices === 'object') return parsed.currentMarketPrices;
+  return {};
+}
+function isCoinEntry(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  return obj.initialEntryPrice !== undefined || obj.initialAmountDollars !== undefined;
+}
+
 let portfolioInvestedAuto = 0;
 let portfolioCurrentValue = 0;
 
@@ -1486,7 +1506,7 @@ function applyFontSize(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🔺 دوال هرم الأمان المالي (النسخة v9)
+   🔺 دوال هرم الأمان المالي
    ═══════════════════════════════════════════════════════════ */
 
 function findCapitalManagerData() {
@@ -1628,17 +1648,6 @@ function updatePyramidCard() {
     } else {
       sourceEl.textContent = '';
     }
-  }
-
-  if (window.console && console.log) {
-    console.log('🔺 Pyramid v9:', {
-      source: data ? 'capital_manager ✓' : 'NOT FOUND ✗',
-      bankBHD: totals.bankSavingsBHD,
-      investmentBHD: totals.investmentBHD,
-      totalUSD: totalUSD,
-      currentValueUSD: portfolioCurrentValue,
-      inHandUSD: savingsUSD + portfolioCurrentValue
-    });
   }
 }
 
@@ -2177,9 +2186,6 @@ function updateAllTotals(){
   if(hintAuto) hintAuto.textContent = fmtMoney(portfolioInvestedAuto, 2);
   if(hintManual) hintManual.textContent = fmtMoney(manualTotal, 2);
 
-  // ═══════════════════════════════════════════════════════════
-  // 🔻 الفرق (إجمالي المستثمر − القيمة الحالية)
-  // ═══════════════════════════════════════════════════════════
   const rawDiff = totalPortfolioInvested - portfolioCurrentValue;
   const absDiff = Math.abs(rawDiff);
 
@@ -2201,9 +2207,6 @@ function updateAllTotals(){
     diffEl.classList.add(colorClass);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // 📊 إجمالي الربح / الخسارة % — مرتبطة بالفرق أعلاه
-  // ═══════════════════════════════════════════════════════════
   const pctEl = document.getElementById('totalPnlPct');
   if (pctEl) {
     if (totalPortfolioInvested > 0.01 && absDiff >= 0.01) {
@@ -2222,18 +2225,27 @@ function updateAllTotals(){
   updatePyramidCard();
 }
 
+/* ═══════════════════════════════════════════════════════════
+   🆕 حساب ملخص الأسعار — مع دعم الأسهم عبر currentMarketPrices
+   ═══════════════════════════════════════════════════════════ */
 function calcSummaryPrices(prices){
   const saved = localStorage.getItem(LS_KEY_DATA);
   if(!saved) return {invested:0,current:0,pnl:0,pnlPct:0,coins:0};
   let parsed;
   try{ parsed = JSON.parse(saved); }catch(e){ return {invested:0,current:0,pnl:0,pnlPct:0,coins:0}; }
-  const coins = parsed?.coins || {};
+  const coins = getCoinsFromData(parsed);
+  const cachedPrices = getCachedPrices(parsed);
   let totalInvested=0, totalCurrent=0, totalPnl=0, coinCount=0;
 
   Object.keys(coins).forEach(symbol=>{
     const d = coins[symbol];
-    if(!d) return;
-    const marketPrice = prices[symbol] || 0;
+    if(!isCoinEntry(d)) return;
+
+    let marketPrice = prices[symbol];
+    if (!marketPrice || marketPrice <= 0) {
+      marketPrice = parseNum(cachedPrices[symbol]) || 0;
+    }
+
     const initPrice = parseNum(d.initialEntryPrice);
     const initAmt   = parseNum(d.initialAmountDollars);
     const initQty   = initPrice>0 ? initAmt/initPrice : 0;
@@ -2247,7 +2259,7 @@ function calcSummaryPrices(prices){
     (d.repurchases||[]).forEach(rp=>{
       const rpAmt    = parseNum(rp.amount);
       const rpPrice  = parseNum(rp.price);
-      if (rpAmt <= 0 || rpPrice <= 0) return; // تخطي الإدخالات غير الصالحة
+      if (rpAmt <= 0 || rpPrice <= 0) return;
       const rpQty = rpAmt / rpPrice;
       const sold  = (rp.sales||[]).reduce((s,x)=>s+parseNum(x.qty),0);
       const remain= Math.max(0, rpQty - sold);
@@ -2273,7 +2285,7 @@ async function fetchPrice(symbol){
   const base = baseSymbol(symbol);
   try{
     const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+base);
-    if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p)) return p; }
+    if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p) && p>0) return p; }
   }catch(e){}
   const endpoints = [
     {url:'https://api.mexc.com/api/v3/ticker/price?symbol='+base, get:d=>d.price},
@@ -2288,7 +2300,7 @@ async function fetchPrice(symbol){
       if(!r.ok) continue;
       const d = await r.json();
       const p = parseFloat(e.get(d));
-      if(!isNaN(p)) return p;
+      if(!isNaN(p) && p>0) return p;
     }catch(e){}
   }
   return 0;
@@ -2310,10 +2322,11 @@ async function refresh(){
     return;
   }
 
-  let coins = {};
-  try{ coins = JSON.parse(saved)?.coins || {}; }catch(e){}
+  let parsed = {};
+  try { parsed = JSON.parse(saved) || {}; } catch(e) {}
+  const coins = getCoinsFromData(parsed);
+  const symbols = Object.keys(coins).filter(k => isCoinEntry(coins[k]));
 
-  const symbols = Object.keys(coins);
   if(symbols.length===0){
     status.className='status err';
     status.textContent= tr('statusNoCoins');
@@ -2330,6 +2343,15 @@ async function refresh(){
     const batch = symbols.slice(i,i+CONC);
     const results = await Promise.all(batch.map(s=>fetchPrice(s)));
     batch.forEach((s,idx)=>{ prices[s]=results[idx]; });
+  }
+
+  // 🆕 استخدم currentMarketPrices كـ fallback لأي سعر فشل جلبه (خصوصاً الأسهم)
+  const cachedPrices = getCachedPrices(parsed);
+  for (const sym of symbols) {
+    if (!prices[sym] || prices[sym] <= 0) {
+      const cp = parseNum(cachedPrices[sym]);
+      if (cp > 0) prices[sym] = cp;
+    }
   }
 
   const r = calcSummaryPrices(prices);
