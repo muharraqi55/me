@@ -1195,10 +1195,18 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 </div>
 
 <script>
+// ✅ الإعدادات والثوابت
 const LS_KEY_DATA = 'cryptoTrackerUniversal_v41_data';
 const TABLE_KEY = 'muharraqi_portfolio_table_v1';
 const LS_KEY_SETTINGS = 'muharraqi_summary_settings_v1';
 const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
+
+// ✅ مفاتيح API المأخوذة من التطبيق الرئيسي
+const FINNHUB_API_KEY = 'db5rvuhr01qmd5lf9cl0db5rvuhr01qmd5lf9clg';
+const TWELVE_DATA_API_KEY = 'a0c201956c7540ceb8b1df362830b1c7';
+const EODHD_API_KEY = '6ad7b1c99d8a22.75564773';
+const INSIGHTSENTRY_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InF3cXdxd3p4NUBnbWFpbC5jb20iLCJjcmVhdGVkX2F0IjoxNzkyNTcwMDc2ODI4fQ.wSxnmAGTNb-GEcQM3g1ZJtS-i7CChA7lenyNzRX3Duw';
+const INSIGHTSENTRY_BASE = 'https://api.insightsentry.com';
 
 const BHD_TO_USD = 1 / 0.377;
 
@@ -2216,6 +2224,195 @@ function updateAllTotals(){
   updatePyramidCard();
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   🌐 دوال جلب الأسعار (مطابقة تماماً للتطبيق الرئيسي)
+   ═══════════════════════════════════════════════════════════════ */
+
+function detectAssetType(symbol, userChoice) {
+    if (!symbol) return 'crypto';
+    if (userChoice === 'crypto' || userChoice === 'stock') return userChoice;
+    const upper = String(symbol).toUpperCase();
+    const cryptoQuoteSuffixes = ['USDT', 'BUSD', 'USDC', 'TUSD', 'USDP', 'FDUSD', 'DAI', 'USDD', 'USDE'];
+    for (const suffix of cryptoQuoteSuffixes) {
+        if (upper.endsWith(suffix) && upper.length > suffix.length + 1) return 'crypto';
+    }
+    const knownCryptos = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC', 'AVAX', 'LINK', 'LTC', 'TRX', 'ATOM', 'XLM', 'ALGO', 'NEAR', 'FTM', 'SAND', 'MANA', 'UNI', 'AAVE', 'MKR', 'COMP', 'SUSHI', 'CRV', 'SHIB', 'PEPE', 'FLOKI'];
+    if (knownCryptos.includes(upper)) return 'crypto';
+    const stockExchangeSuffixes = ['.SR', '.CA', '.AE', '.QA', '.KW', '.BH', '.OM', '.JO', '.L', '.T', '.HK', '.DE', '.PA', '.MI', '.AS', '.AX', '.TO', '.V'];
+    for (const suffix of stockExchangeSuffixes) {
+        if (upper.endsWith(suffix)) return 'stock';
+    }
+    return 'stock';
+}
+
+async function fetchTwelveDataPrice(symbol) {
+    try {
+        const url = 'https://api.twelvedata.com/price?symbol=' + encodeURIComponent(symbol) + '&apikey=' + TWELVE_DATA_API_KEY;
+        const fetchUrl = MY_PROXY_URL + '?url=' + encodeURIComponent(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(fetchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data && data.price && !isNaN(parseFloat(data.price))) return { symbol: symbol, price: parseFloat(data.price), source: 'Twelve Data', error: null };
+        return null;
+    } catch (e) { console.warn('⚠️ Twelve Data failed for', symbol, e.message); return null; }
+}
+
+async function fetchFinnhubPrice(symbol) {
+    try {
+        const url = 'https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(symbol) + '&token=' + FINNHUB_API_KEY;
+        const fetchUrl = MY_PROXY_URL + '?url=' + encodeURIComponent(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(fetchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data && typeof data.c === 'number' && data.c > 0) return { symbol: symbol, price: data.c, source: 'Finnhub', error: null };
+        return null;
+    } catch (e) { console.warn('⚠️ Finnhub failed for', symbol, e.message); return null; }
+}
+
+async function fetchBahrainBoursePrice(symbol) {
+    if (!symbol || !symbol.toUpperCase().endsWith('.BH')) return null;
+    const cleanSymbol = symbol.replace(/\.BH$/i, '').toUpperCase();
+    const fullSymbol = 'BAHRAIN:' + cleanSymbol;
+    try {
+        const response = await fetch(INSIGHTSENTRY_BASE + '/v3/symbols/quotes?symbols=' + encodeURIComponent(fullSymbol), {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + INSIGHTSENTRY_API_KEY, 'Accept': 'application/json' }
+        });
+        if (!response.ok) return null;
+        const json = await response.json();
+        if (json.data && json.data.length > 0) {
+            const quote = json.data[0];
+            const priceBHD = parseFloat(quote.last_price) || parseFloat(quote.regular_close_price) || parseFloat(quote.prev_close_price);
+            if (priceBHD > 0 && !isNaN(priceBHD)) {
+                const priceUSD = priceBHD / 0.376;
+                return { symbol: symbol, price: priceUSD, priceOriginal: priceBHD, currency: 'BHD', source: 'InsightSentry', error: null };
+            }
+        }
+        return null;
+    } catch (e) {
+        console.error('❌ InsightSentry error:', e);
+        return null;
+    }
+}
+
+async function fetchEODHDPrice(symbol) {
+    try {
+        const url = 'https://eodhd.com/api/real-time/' + encodeURIComponent(symbol) + '?api_token=' + EODHD_API_KEY + '&fmt=json';
+        const fetchUrl = MY_PROXY_URL + '?url=' + encodeURIComponent(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(fetchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data || (data.code && data.code === 'N/D')) return null;
+        const price = parseFloat(data.close || data.previousClose || data.price);
+        if (price > 0 && !isNaN(price)) {
+            return { symbol: symbol, price: price, source: 'EODHD', error: null };
+        }
+        return null;
+    } catch (e) { console.warn('⚠️ EODHD failed for', symbol, e.message); return null; }
+}
+
+async function fetchYahooPrice(symbol) {
+    try {
+        const url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(symbol);
+        const fetchUrl = MY_PROXY_URL + '?url=' + encodeURIComponent(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(fetchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (data && data.chart && data.chart.result && data.chart.result[0]) {
+            const result = data.chart.result[0];
+            const price = result.meta && result.meta.regularMarketPrice;
+            if (price && !isNaN(parseFloat(price))) return { symbol: symbol, price: parseFloat(price), source: 'Yahoo Finance', error: null };
+        }
+        return null;
+    } catch (e) { console.warn('⚠️ Yahoo Finance failed for', symbol, e.message); return null; }
+}
+
+async function fetchStockPrice(symbol) {
+    const upper = String(symbol).toUpperCase();
+    if (upper.endsWith('.BH')) {
+        const bhbResult = await fetchBahrainBoursePrice(symbol);
+        if (bhbResult && bhbResult.price) return bhbResult;
+        return await fetchYahooPrice(symbol);
+    }
+    const middleEastSuffixes = ['.SR', '.AE', '.QA', '.KW', '.OM', '.JO', '.SA'];
+    const isMiddleEast = middleEastSuffixes.some(s => upper.endsWith(s));
+    if (isMiddleEast) {
+        let result = await fetchYahooPrice(symbol);
+        if (result && result.price) return result;
+        result = await fetchTwelveDataPrice(symbol);
+        if (result && result.price) return result;
+        return await fetchFinnhubPrice(symbol);
+    }
+    let result = await fetchEODHDPrice(symbol);
+    if (result && result.price) return result;
+    result = await fetchTwelveDataPrice(symbol);
+    if (result && result.price) return result;
+    result = await fetchFinnhubPrice(symbol);
+    if (result && result.price) return result;
+    return await fetchYahooPrice(symbol);
+}
+
+async function fetchCryptoPriceDirect(symbol) {
+    const binanceDomains = ['KASUSDT', 'XDBUSDT'].includes(String(symbol).toUpperCase()) ? [] : ['https://api.binance.com'];
+    for (const domain of binanceDomains) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch(domain + '/api/v3/ticker/price?symbol=' + encodeURIComponent(symbol), { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.price && Number.isFinite(Number(data.price))) return { price: Number(data.price), source: 'Binance' };
+            }
+        } catch (e) {}
+    }
+    const altExchanges = [
+        { name: 'MEXC', url: 'https://api.mexc.com/api/v3/ticker/price?symbol=' + symbol, extract: (d) => d.price },
+        { name: 'OKX', url: 'https://www.okx.com/api/v5/market/ticker?instId=' + symbol.replace('USDT', '-USDT'), extract: (d) => d.data && d.data[0] ? d.data[0].last : null },
+        { name: 'KuCoin', url: 'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=' + symbol.replace('USDT', '-USDT'), extract: (d) => d.code === '200000' && d.data ? d.data.price : null },
+        { name: 'Bybit', url: 'https://api.bybit.com/v5/market/tickers?category=spot&symbol=' + symbol, extract: (d) => d.result && d.result.list && d.result.list[0] ? d.result.list[0].lastPrice : null }
+    ];
+    for (const ex of altExchanges) {
+        try {
+            const fetchUrl = MY_PROXY_URL + '?url=' + encodeURIComponent(ex.url);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const response = await fetch(fetchUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (response.ok) { const data = await response.json(); const price = ex.extract(data); if (price && !isNaN(parseFloat(price))) return { price: parseFloat(price), source: ex.name }; }
+        } catch (e) {}
+    }
+    return null;
+}
+
+async function fetchSinglePrice(symbol, assetType) {
+    if (!symbol) return { symbol, price: null };
+    const type = assetType || detectAssetType(symbol, 'auto');
+    if (type === 'stock') {
+        const result = await fetchStockPrice(symbol);
+        if (result && result.price) return { symbol, price: result.price, source: result.source };
+    } else {
+        const result = await fetchCryptoPriceDirect(symbol);
+        if (result && result.price) return { symbol, price: result.price, source: result.source };
+    }
+    return { symbol, price: null };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   🧮 حساب ملخص الأسعار (المنطق الدقيق من التطبيق الرئيسي)
+   ═══════════════════════════════════════════════════════════════ */
 function calcSummaryPrices(prices){
   const saved = localStorage.getItem(LS_KEY_DATA);
   if(!saved) return {invested:0,current:0,pnl:0,pnlPct:0,coins:0};
@@ -2269,34 +2466,6 @@ function calcSummaryPrices(prices){
   return {invested:totalInvested, current:totalCurrent, pnl:totalPnl, pnlPct:totalPnlPct, coins:coinCount};
 }
 
-async function fetchPrice(symbol, assetType){
-  const base = baseSymbol(symbol);
-  
-  // ⚡ الأسهم سيتم جلبها من السعر المحفوظ (currentMarketPrices) لضمان مطابقة التطبيق الرئيسي
-  // لأن التطبيق الرئيسي يقوم بتحويل عملات الأسهم (مثل الدينار) إلى دولار
-  try{
-    const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+base);
-    if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p) && p>0) return p; }
-  }catch(e){}
-  const endpoints = [
-    {url:'https://api.mexc.com/api/v3/ticker/price?symbol='+base, get:d=>d.price},
-    {url:'https://api.gateio.ws/api/v4/spot/tickers?currency_pair='+base.replace('USDT','_USDT'), get:d=>d[0]?.last},
-    {url:'https://www.okx.com/api/v5/market/ticker?instId='+base.replace('USDT','-USDT'), get:d=>d.data?.[0]?.last},
-    {url:'https://api.kucoin.com/api/v1/market/orderbook/level1?symbol='+base.replace('USDT','-USDT'), get:d=>d.data?.price},
-    {url:'https://api.bybit.com/v5/market/tickers?category=spot&symbol='+base, get:d=>d.result?.list?.[0]?.lastPrice}
-  ];
-  for(const e of endpoints){
-    try{
-      const r = await fetch(MY_PROXY_URL+'?url='+encodeURIComponent(e.url));
-      if(!r.ok) continue;
-      const d = await r.json();
-      const p = parseFloat(e.get(d));
-      if(!isNaN(p) && p>0) return p;
-    }catch(e){}
-  }
-  return 0;
-}
-
 async function refresh(){
   const status = document.getElementById('status');
   status.className='status';
@@ -2329,14 +2498,23 @@ async function refresh(){
   }
 
   const prices = {};
-  const CONC=4;
-  for(let i=0;i<symbols.length;i+=CONC){
-    const batch = symbols.slice(i,i+CONC);
-    const results = await Promise.all(batch.map(s=>fetchPrice(s, coins[s].assetType)));
-    batch.forEach((s,idx)=>{ prices[s]=results[idx]; });
+  const CONC = 3;
+  for(let i=0; i<symbols.length; i+=CONC){
+    const batch = symbols.slice(i, i+CONC);
+    const results = await Promise.allSettled(batch.map(s => fetchSinglePrice(s, coins[s].assetType)));
+    batch.forEach((s, idx) => {
+      if (results[idx].status === 'fulfilled' && results[idx].value.price) {
+        prices[s] = results[idx].value.price;
+      } else {
+        prices[s] = 0;
+      }
+    });
+    if (i + CONC < symbols.length) {
+      await new Promise(r => setTimeout(r, 200)); // تأخير بسيط لتجنب الحظر
+    }
   }
 
-  // 🎯 استخدام السعر المحفوظ في currentMarketPrices كخطة بديلة (للأسهم والعملات)
+  // استخدام الأسعار المحفوظة كخطة بديلة
   const cachedPrices = getCachedPrices(parsed);
   for (const sym of symbols) {
     if (!prices[sym] || prices[sym] <= 0) {
