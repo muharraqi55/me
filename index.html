@@ -2282,10 +2282,28 @@ function calcSummaryPrices(prices){
   return {invested:totalInvested, current:totalCurrent, pnl:totalPnl, pnlPct:totalPnlPct, coins:coinCount};
 }
 
-async function fetchPrice(symbol){
+async function fetchPrice(symbol, assetType){
   const base = baseSymbol(symbol);
-  // الأسهم (تحتوي على نقطة مثل ALBH.BH أو رموز مثل AMZN/TSLA) لا تُجلب من Binance
-  // سيتم استخدام السعر المحفوظ في currentMarketPrices لها
+  
+  // 1. جلب أسعار الأسهم من Yahoo Finance
+  if (assetType === 'stock' || (!base.endsWith('USDT') && !base.includes('USDT'))) {
+    try {
+      const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + base + '?interval=1d&range=5d';
+      const proxyRes = await fetch(MY_PROXY_URL + '?url=' + encodeURIComponent(yahooUrl), { cache: 'no-cache' });
+      if (proxyRes.ok) {
+        const yahooData = await proxyRes.json();
+        const result = yahooData?.chart?.result?.[0];
+        if (result) {
+          const currentPrice = result.meta.regularMarketPrice;
+          if (currentPrice && currentPrice > 0) return currentPrice;
+        }
+      }
+    } catch (e) {
+      console.warn('Yahoo Finance fetch failed for ' + base, e.message);
+    }
+  }
+
+  // 2. جلب أسعار العملات الرقمية من Binance والمنصات الأخرى
   try{
     const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol='+base);
     if(r.ok){ const j=await r.json(); const p=parseFloat(j.price); if(!isNaN(p) && p>0) return p; }
@@ -2344,11 +2362,11 @@ async function refresh(){
   const CONC=4;
   for(let i=0;i<symbols.length;i+=CONC){
     const batch = symbols.slice(i,i+CONC);
-    const results = await Promise.all(batch.map(s=>fetchPrice(s)));
+    const results = await Promise.all(batch.map(s=>fetchPrice(s, coins[s].assetType)));
     batch.forEach((s,idx)=>{ prices[s]=results[idx]; });
   }
 
-  // ⚡ استخدم currentMarketPrices كـ fallback لأي سعر فشل جلبه (خصوصاً الأسهم)
+  // fallback للسعر المحفوظ إذا فشل الجلب
   const cachedPrices = getCachedPrices(parsed);
   for (const sym of symbols) {
     if (!prices[sym] || prices[sym] <= 0) {
