@@ -2553,9 +2553,8 @@ function backToMain(){ location.href = 'index.html'; }
 
   refresh();
 
-  setInterval(refresh, 30000);
-  setInterval(fetchDXYPrice, 30000);
-  setInterval(updatePyramidCard, 5000);
+  // ⛔ تم تعطيل التحديث التلقائي — التحديث يدوي فقط عبر زر 🔄
+  // (تم إزالة: setInterval(refresh, 30000); setInterval(fetchDXYPrice, 30000); setInterval(updatePyramidCard, 5000);)
 })();
 </script>
 </body>
