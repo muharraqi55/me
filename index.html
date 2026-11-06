@@ -4,7 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ملخص المحفظة | Muharraqi Pro</title>
+
+<!-- ✅ [جديد] مكتبة CryptoJS لفك تشفير ملف pop4.json -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+
 <style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   [القسم 2 من 3 — CSS كامل]
+   يحتوي على: كل تنسيقات ملف ملخص المحفظة الأصلي
+            + تنسيقات نافذة فك التشفير الجديدة (pop4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root{
   --bg:#0f1720; --card:#16212e; --card2:#1c2a3a;
   --text:#e8eef5; --muted:#8ea0b5; --border:#243547;
@@ -113,6 +124,21 @@ body[dir="ltr"] .floating-bar{right:auto;left:18px}
 }
 .fab.danger{border-color:rgba(220,38,38,.5)}
 .fab.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* ✅ [جديد] زر فك التشفير FAB */
+.fab.decrypt{
+  border-color:rgba(255,193,7,.6);
+  color:var(--gold);
+  background:linear-gradient(135deg, rgba(255,193,7,.08), rgba(217,119,6,.05));
+}
+.fab.decrypt:hover{
+  border-color:var(--gold);
+  color:#fff;
+  background:linear-gradient(135deg,var(--gold),#d97706);
+  transform:scale(1.12) rotate(-6deg);
+  box-shadow:0 8px 22px rgba(255,193,7,.45);
+}
+
 .fab .tooltip{
   position:absolute;right:calc(100% + 12px);top:50%;
   transform:translateY(-50%) translateX(10px);
@@ -869,6 +895,9 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   .floating-bar{
     right:8px;top:auto;bottom:20px;transform:none;
     flex-direction:row;gap:8px;
+    flex-wrap:wrap;
+    max-width:calc(100vw - 16px);
+    justify-content:center;
   }
   body[dir="ltr"] .floating-bar{left:8px;right:auto}
   .fab{width:44px;height:44px;font-size:1.1em}
@@ -889,7 +918,349 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   .yt-launcher-icon{width:44px;height:44px;}
   .yt-launcher-title{font-size:.95em;}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   🆕 [جديد] تنسيقات نافذة فك التشفير (pop4)
+   ═══════════════════════════════════════════════════════════════ */
+.decrypt-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100000;
+  padding:20px;
+  animation:fadeIn .25s ease;
+}
+.decrypt-modal-overlay.active{ display:flex; }
+
+.decrypt-modal{
+  background:var(--card);
+  border-radius:20px;
+  max-width:640px;
+  width:100%;
+  max-height:92vh;
+  overflow:hidden;
+  box-shadow:0 25px 80px rgba(0,0,0,.55), 0 0 0 2px rgba(255,193,7,.15);
+  border:2px solid var(--border);
+  animation:slideUp .35s cubic-bezier(.34,1.56,.64,1);
+  display:flex;
+  flex-direction:column;
+}
+
+.decrypt-modal-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px 22px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:#fff;
+  position:relative;
+  flex-shrink:0;
+}
+.decrypt-header-icon{
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  background:rgba(255,255,255,.2);
+  border:1px solid rgba(255,255,255,.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6em;
+  flex-shrink:0;
+}
+.decrypt-header-text{ flex:1; min-width:0; }
+.decrypt-modal-header h3{
+  font-size:1.15em;
+  font-weight:800;
+  margin-bottom:4px;
+}
+.decrypt-modal-header p{
+  font-size:.8em;
+  opacity:.92;
+}
+.decrypt-close{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:rgba(255,255,255,.18);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.28);
+  cursor:pointer;
+  font-size:1.05em;
+  font-weight:800;
+  transition:.25s;
+  font-family:inherit;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.decrypt-close:hover{
+  background:rgba(255,255,255,.32);
+  transform:rotate(90deg);
+}
+
+.decrypt-modal-body{
+  padding:22px 24px;
+  overflow-y:auto;
+  flex:1;
+}
+
+.decrypt-mode-selector{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:16px;
+}
+.decrypt-mode-title{
+  font-weight:800;
+  color:var(--text);
+  font-size:.92em;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.decrypt-mode-option{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:10px 12px;
+  margin-bottom:6px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.2s;
+  border:1.5px solid transparent;
+}
+.decrypt-mode-option:last-child{ margin-bottom:0; }
+.decrypt-mode-option:hover{
+  background:rgba(77,171,247,.06);
+  border-color:rgba(77,171,247,.3);
+}
+.decrypt-mode-option input[type="radio"]{
+  margin-top:3px;
+  width:18px;
+  height:18px;
+  accent-color:var(--gold);
+  cursor:pointer;
+  flex-shrink:0;
+}
+.decrypt-mode-label{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  flex:1;
+  min-width:0;
+}
+.decrypt-mode-label strong{
+  font-size:.92em;
+  color:var(--text);
+  font-weight:700;
+}
+.decrypt-mode-label small{
+  font-size:.75em;
+  color:var(--muted);
+  font-weight:500;
+}
+.decrypt-mode-option input[type="radio"]:checked + .decrypt-mode-label strong{
+  color:var(--gold);
+}
+
+.decrypt-field{
+  margin-bottom:16px;
+}
+.decrypt-field label{
+  display:block;
+  font-weight:700;
+  font-size:.88em;
+  color:var(--text);
+  margin-bottom:7px;
+}
+.decrypt-field input[type="password"],
+.decrypt-field input[type="text"],
+.decrypt-field input[type="file"]{
+  width:100%;
+  padding:12px 14px;
+  border:2px solid var(--border);
+  border-radius:10px;
+  background:var(--input-bg);
+  color:var(--text);
+  font-size:.95em;
+  font-family:inherit;
+  transition:.2s;
+  outline:none;
+  box-sizing:border-box;
+}
+.decrypt-field input[type="password"]{
+  font-family:'Roboto Mono',monospace;
+  letter-spacing:.15em;
+  font-size:1em;
+  text-align:center;
+}
+.decrypt-field input[type="text"]{
+  font-family:'Roboto Mono',monospace;
+  font-size:.82em;
+  direction:ltr;
+}
+.decrypt-field input[type="password"]:focus,
+.decrypt-field input[type="text"]:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(255,193,7,.18);
+}
+.decrypt-field input[type="file"]{
+  padding:10px 12px;
+  border-style:dashed;
+  border-color:rgba(255,193,7,.5);
+  cursor:pointer;
+}
+.decrypt-field input[type="file"]:hover{
+  background:rgba(255,193,7,.05);
+  border-color:var(--gold);
+}
+.decrypt-field-hint{
+  font-size:.75em;
+  color:var(--muted);
+  font-style:italic;
+  margin-top:6px;
+  padding:0 4px;
+}
+
+.decrypt-status{
+  padding:14px 16px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:.88em;
+  line-height:1.7;
+  border:2px solid;
+  margin-top:14px;
+  animation:fadeIn .3s;
+  text-align:center;
+  white-space:pre-line;
+}
+.decrypt-status.status-loading{
+  background:rgba(77,171,247,.1);
+  border-color:var(--primary);
+  color:var(--primary);
+}
+.decrypt-status.status-success{
+  background:rgba(32,201,151,.12);
+  border-color:var(--green);
+  color:var(--green);
+}
+.decrypt-status.status-error{
+  background:rgba(250,82,82,.12);
+  border-color:var(--red);
+  color:var(--red);
+}
+.decrypt-status.status-warning{
+  background:rgba(255,193,7,.12);
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+.decrypt-modal-footer{
+  display:flex;
+  gap:10px;
+  padding:16px 22px;
+  border-top:1px solid var(--border);
+  background:var(--card2);
+  flex-shrink:0;
+}
+.decrypt-btn{
+  padding:13px 18px;
+  border-radius:10px;
+  font-weight:800;
+  font-size:.92em;
+  cursor:pointer;
+  transition:.22s;
+  font-family:inherit;
+  border:2px solid transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.decrypt-btn-cancel{
+  flex:1;
+  background:transparent;
+  color:var(--text);
+  border-color:var(--border);
+}
+.decrypt-btn-cancel:hover{
+  background:var(--border);
+  transform:translateY(-2px);
+}
+.decrypt-btn-confirm{
+  flex:1.6;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:#fff;
+  box-shadow:0 4px 15px rgba(245,158,11,.4);
+}
+.decrypt-btn-confirm:hover:not(:disabled){
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(245,158,11,.6);
+}
+.decrypt-btn-confirm:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  box-shadow:none;
+  transform:none;
+}
+
+/* استجابة الجوال لنافذة فك التشفير */
+@media (max-width:600px){
+  .decrypt-modal{
+    max-width:calc(100vw - 24px);
+    border-radius:16px;
+  }
+  .decrypt-modal-header{
+    padding:14px 16px;
+    gap:10px;
+  }
+  .decrypt-header-icon{
+    width:40px;
+    height:40px;
+    font-size:1.35em;
+    border-radius:11px;
+  }
+  .decrypt-modal-header h3{ font-size:1em; }
+  .decrypt-modal-header p{ font-size:.72em; }
+  .decrypt-modal-body{ padding:16px 18px; }
+  .decrypt-mode-option{ padding:9px 10px; }
+  .decrypt-mode-label strong{ font-size:.85em; }
+  .decrypt-mode-label small{ font-size:.7em; }
+  .decrypt-field input[type="password"],
+  .decrypt-field input[type="text"]{
+    padding:11px 12px;
+    font-size:.9em;
+  }
+  .decrypt-modal-footer{
+    padding:12px 16px;
+    flex-direction:column-reverse;
+    gap:8px;
+  }
+  .decrypt-btn{
+    width:100%;
+    padding:12px 14px;
+  }
+  .decrypt-btn-confirm, .decrypt-btn-cancel{
+    flex:none;
+  }
+}
+
+@media (max-width:380px){
+  .decrypt-modal-header h3{ font-size:.92em; }
+  .decrypt-mode-title{ font-size:.85em; }
+}
+
+
 </style>
+
 </head>
 <body>
 
@@ -933,6 +1304,14 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
     📂
     <span class="tooltip" id="tipLoad">استرجاع المعلومات</span>
   </button>
+
+  <!-- ✅ [جديد] زر فك التشفير — استيراد pop4.json -->
+  <button class="fab decrypt" id="fabDecrypt" onclick="openDecryptModal()">
+    🔓
+    <span class="tooltip" id="tipDecrypt">فك تشفير واستيراد pop4.json</span>
+  </button>
+  <!-- ✅ [نهاية الإضافة] -->
+
   <button class="fab danger" id="fabDelete" onclick="openDeleteWarning()">
     🗑️
     <span class="tooltip" id="tipDelete">مسح جميع البيانات</span>
@@ -1002,6 +1381,78 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ✅ [جديد] نافذة فك التشفير واستيراد ملف pop4.json
+     تعمل بنفس فكرة index 11 و index 22
+     - وضع GitHub: يجلب تلقائياً من https://muharraqi55.github.io/me/pop4.json
+     - وضع محلي: يسمح برفع ملف pop4.json من الجهاز
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="decrypt-modal-overlay" id="decryptModal" onclick="if(event.target===this)closeDecryptModal()">
+  <div class="decrypt-modal">
+    <div class="decrypt-modal-header">
+      <div class="decrypt-header-icon">🔓</div>
+      <div class="decrypt-header-text">
+        <h3>فك تشفير واستيراد pop4</h3>
+        <p>استعد بياناتك المشفّرة بأمان</p>
+      </div>
+      <button class="decrypt-close" onclick="closeDecryptModal()" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="decrypt-modal-body">
+
+      <div class="decrypt-mode-selector">
+        <div class="decrypt-mode-title">📥 اختر طريقة الاستيراد:</div>
+        <label class="decrypt-mode-option">
+          <input type="radio" name="decryptImportMode" value="github" checked onchange="toggleDecryptImportMode()">
+          <span class="decrypt-mode-label">
+            <strong>🌐 استيراد مباشر من GitHub</strong>
+            <small>يجلب pop4.json تلقائياً من موقعك</small>
+          </span>
+        </label>
+        <label class="decrypt-mode-option">
+          <input type="radio" name="decryptImportMode" value="local" onchange="toggleDecryptImportMode()">
+          <span class="decrypt-mode-label">
+            <strong>📱 استيراد من الجهاز</strong>
+            <small>رفع ملف pop4.json من جهازك</small>
+          </span>
+        </label>
+      </div>
+
+      <div class="decrypt-field">
+        <label for="decryptPassword">🔑 كلمة المرور</label>
+        <input type="password" id="decryptPassword" placeholder="أدخل كلمة المرور هنا..."
+               onkeypress="if(event.key==='Enter')processDecryption()">
+      </div>
+
+      <div class="decrypt-github-mode" id="decryptGithubMode">
+        <div class="decrypt-field">
+          <label for="pop4Url">🔗 رابط ملف pop4.json</label>
+          <input type="text" id="pop4Url"
+                 value="https://muharraqi55.github.io/me/pop4.json"
+                 placeholder="https://...">
+          <div class="decrypt-field-hint">💡 الرابط الافتراضي هو موقعك على GitHub Pages</div>
+        </div>
+      </div>
+
+      <div class="decrypt-local-mode" id="decryptLocalMode" style="display:none">
+        <div class="decrypt-field">
+          <label for="pop4File">📁 ملف pop4.json (المشفَّر)</label>
+          <input type="file" id="pop4File" accept=".json,application/json">
+        </div>
+      </div>
+
+      <div class="decrypt-status" id="decryptStatus" style="display:none"></div>
+
+    </div>
+    <div class="decrypt-modal-footer">
+      <button class="decrypt-btn decrypt-btn-cancel" onclick="closeDecryptModal()">إلغاء</button>
+      <button class="decrypt-btn decrypt-btn-confirm" id="btnProcessDecryption" onclick="processDecryption()">
+        🔓 فك التشفير واستيراد
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ✅ [نهاية نافذة فك التشفير] -->
 
 <div class="wrap">
   <h1 data-i18n="title">📊 ملخص المحفظة</h1>
@@ -1195,6 +1646,13 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   ملخص المحفظة — JavaScript (3-A من 3)
+   الأساس: الإعدادات + I18N + Helpers + State + Table + Settings
+   ✅ يحتوي على كل ما في الملف الأصلي بدون حذف
+   🆕 [إضافة]: ترجمات نافذة فك التشفير (pop4)
+   ═══════════════════════════════════════════════════════════════ */
+
 // ✅ الإعدادات والثوابت
 const LS_KEY_DATA = 'cryptoTrackerUniversal_v41_data';
 const TABLE_KEY = 'muharraqi_portfolio_table_v1';
@@ -1284,6 +1742,36 @@ const T = {
     ytLauncherSub: 'اضغط لعرض قائمة الفيديوهات',
     ytModalTitle: '🎬 قائمة فيديوهات يوتيوب',
     ytModalSub: 'اختر الفيديو ليفتح مباشرة في تطبيق يوتيوب',
+
+    /* 🆕 [جديد] ترجمات نافذة فك التشفير */
+    tipDecrypt: 'فك تشفير واستيراد pop4.json',
+    decryptTitle: 'فك تشفير واستيراد pop4',
+    decryptSubtitle: 'استعد بياناتك المشفّرة بأمان',
+    decryptModeTitle: '📥 اختر طريقة الاستيراد:',
+    decryptGithubMode: '🌐 استيراد مباشر من GitHub',
+    decryptGithubModeHint: 'يجلب pop4.json تلقائياً من موقعك',
+    decryptLocalMode: '📱 استيراد من الجهاز',
+    decryptLocalModeHint: 'رفع ملف pop4.json من جهازك',
+    decryptPasswordLabel: '🔑 كلمة المرور',
+    decryptPasswordPlaceholder: 'أدخل كلمة المرور هنا...',
+    decryptUrlLabel: '🔗 رابط ملف pop4.json',
+    decryptUrlHint: '💡 الرابط الافتراضي هو موقعك على GitHub Pages',
+    decryptFileLabel: '📁 ملف pop4.json (المشفَّر)',
+    decryptBtnConfirm: '🔓 فك التشفير واستيراد',
+    decryptBtnCancel: 'إلغاء',
+    decryptLoading: '⏳ جاري فك التشفير...',
+    decryptSuccess: '✅ تم الاستيراد بنجاح! جاري إعادة تحميل الصفحة...',
+    decryptErrorNoPassword: '⚠️ الرجاء إدخال كلمة المرور',
+    decryptErrorNoCrypto: '⚠️ مكتبة CryptoJS غير محمّلة — تأكد من اتصالك بالإنترنت',
+    decryptErrorEmptyFile: '❌ الملف فارغ أو غير صالح',
+    decryptErrorWrongPassword: '❌ كلمة المرور غير صحيحة أو الملف تالف',
+    decryptErrorInvalidJson: '❌ البيانات المفكوكة غير صالحة',
+    decryptErrorIncompatible: '❌ الملف لا يحتوي على بيانات متوافقة مع التطبيق',
+    decryptErrorNoFile: '⚠️ الرجاء اختيار ملف pop4.json من جهازك',
+    decryptErrorNoUrl: '⚠️ الرجاء إدخال رابط pop4.json',
+    decryptErrorFetchFailed: '❌ فشل جلب الملف من الرابط',
+    decryptErrorTimeout: '⏳ انتهت مهلة جلب الملف (15 ثانية)',
+    decryptErrorFileRead: '❌ فشل قراءة الملف',
   },
   en: {
     brand: 'Portfolio Summary', title: '📊 Portfolio Summary',
@@ -1340,6 +1828,36 @@ const T = {
     ytLauncherSub: 'Click to view the video list',
     ytModalTitle: '🎬 YouTube Videos List',
     ytModalSub: 'Choose a video to open directly in the YouTube app',
+
+    /* 🆕 [جديد] Decrypt modal translations */
+    tipDecrypt: 'Decrypt & import pop4.json',
+    decryptTitle: 'Decrypt & Import pop4',
+    decryptSubtitle: 'Safely restore your encrypted data',
+    decryptModeTitle: '📥 Choose import method:',
+    decryptGithubMode: '🌐 Direct import from GitHub',
+    decryptGithubModeHint: 'Fetches pop4.json automatically from your site',
+    decryptLocalMode: '📱 Import from device',
+    decryptLocalModeHint: 'Upload pop4.json from your device',
+    decryptPasswordLabel: '🔑 Password',
+    decryptPasswordPlaceholder: 'Enter password here...',
+    decryptUrlLabel: '🔗 pop4.json URL',
+    decryptUrlHint: '💡 Default URL is your GitHub Pages site',
+    decryptFileLabel: '📁 pop4.json file (encrypted)',
+    decryptBtnConfirm: '🔓 Decrypt & Import',
+    decryptBtnCancel: 'Cancel',
+    decryptLoading: '⏳ Decrypting...',
+    decryptSuccess: '✅ Imported successfully! Reloading page...',
+    decryptErrorNoPassword: '⚠️ Please enter the password',
+    decryptErrorNoCrypto: '⚠️ CryptoJS library not loaded — check internet',
+    decryptErrorEmptyFile: '❌ File is empty or invalid',
+    decryptErrorWrongPassword: '❌ Wrong password or corrupted file',
+    decryptErrorInvalidJson: '❌ Decrypted data is invalid',
+    decryptErrorIncompatible: '❌ File does not contain compatible app data',
+    decryptErrorNoFile: '⚠️ Please select pop4.json from your device',
+    decryptErrorNoUrl: '⚠️ Please enter pop4.json URL',
+    decryptErrorFetchFailed: '❌ Failed to fetch file from URL',
+    decryptErrorTimeout: '⏳ File fetch timeout (15s)',
+    decryptErrorFileRead: '❌ Failed to read file',
   }
 };
 const tr = (k) => (T[currentLang] && T[currentLang][k]) || k;
@@ -1442,6 +1960,10 @@ function setLang(lang){
   if(document.getElementById('ytModal').classList.contains('active')){
     renderYouTubeList();
   }
+
+  // 🆕 ترجمة نافذة فك التشفير (إن كانت مفتوحة)
+  try { applyDecryptModalTranslations(); } catch(e) {}
+
   saveSettings();
 }
 
@@ -2053,15 +2575,47 @@ document.getElementById('loadFileInput').addEventListener('change', function(e){
 function openDeleteWarning(){ document.getElementById('deleteWarningModal').classList.add('active'); }
 function closeDeleteWarning(){ document.getElementById('deleteWarningModal').classList.remove('active'); }
 function executeDeleteAll(){
-  localStorage.removeItem(TABLE_KEY);
-  localStorage.removeItem(LS_KEY_SETTINGS);
+  
+  // 1️⃣ حذف بيانات الصفحة (الجدول + الإعدادات)
+  try { localStorage.removeItem(TABLE_KEY); } catch(e){}
+  try { localStorage.removeItem(LS_KEY_SETTINGS); } catch(e){}
+  
+  // 2️⃣ حذف بيانات المحفظة
+  try { localStorage.removeItem(LS_KEY_DATA); } catch(e){}
+  
+  // 3️⃣ حذف بيانات إدارة رأس المال (بيانات الهرم)
+  try {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key === TABLE_KEY || key === LS_KEY_SETTINGS) continue;
+      try {
+        const val = localStorage.getItem(key);
+        if (!val || val.length < 100) continue;
+        const parsed = JSON.parse(val);
+        if (parsed && typeof parsed === 'object' && parsed.years && typeof parsed.years === 'object' && (parsed.pyramidTargets || parsed.pyramidWithdrawals)) {
+          keysToRemove.push(key);
+        }
+      } catch (e) {}
+    }
+    keysToRemove.forEach(k => { try { localStorage.removeItem(k); } catch(e){} });
+  } catch (e) {}
+  
+  // 4️⃣ تصفير المتغيرات
   tableRows = [];
   currentLang = 'ar';
   currentCurrency = 'USD';
   fontScale = 1;
   hideSensitive = false;
+  portfolioInvestedAuto = 0;
+  portfolioCurrentValue = 0;
+  
+  // 5️⃣ إعادة تعيين المظهر
   document.body.classList.remove('light-mode');
   document.body.style.fontSize = '14px';
+  
+  // 6️⃣ إعادة بناء الواجهة
   loadTable();
   renderTable();
   applyFontSize();
@@ -2069,10 +2623,41 @@ function executeDeleteAll(){
   setLang(currentLang);
   updateCurrencyFab();
   updateThemeIcon();
-  refresh();
-  updatePyramidCard();
+  
+  // 7️⃣ تصفير العرض
+  refreshAllCardValues();
+  updateAllTotals();
+  
+  const statusEl = document.getElementById('status');
+  if (statusEl) {
+    statusEl.className = 'status err';
+    statusEl.textContent = tr('statusNoData');
+  }
+  
+  // 8️⃣ تصفير بطاقة "لو لم تستثمر"
+  const savingsEl = document.getElementById('pyramidSavingsVal');
+  const investEl  = document.getElementById('pyramidInvestmentVal');
+  const totalEl   = document.getElementById('pyramidTotal');
+  const sourceEl  = document.getElementById('pyramidSource');
+  const inHandEl  = document.getElementById('pyramidInHandVal');
+  
+  if (savingsEl) savingsEl.textContent = fmtMoney(0, 2);
+  if (investEl) {
+    investEl.textContent = tr('pyramidNotInvested');
+    investEl.classList.add('not-invested');
+  }
+  if (totalEl) totalEl.textContent = fmtMoney(0, 2);
+  if (sourceEl) sourceEl.textContent = '';
+  if (inHandEl) inHandEl.textContent = '= ' + fmtMoney(0, 2);
+  
+  // 9️⃣ إغلاق النافذة وإظهار الرسالة
   closeDeleteWarning();
   showToast(tr('deletedSuccess'), 'success');
+  
+  // 🔟 إعادة تحميل الصفحة بعد 2 ثانية
+  setTimeout(() => {
+    try { location.reload(); } catch(e){}
+  }, 2000);
 }
 document.getElementById('deleteWarningModal').addEventListener('click', function(e){
   if(e.target === this) closeDeleteWarning();
@@ -2083,6 +2668,9 @@ document.addEventListener('keydown', function(e){
     if(modal.classList.contains('active')) closeDeleteWarning();
     const ytModal = document.getElementById('ytModal');
     if(ytModal && ytModal.classList.contains('active')) closeYouTubeList();
+    // 🆕 إغلاق نافذة فك التشفير بـ Escape
+    const decModal = document.getElementById('decryptModal');
+    if(decModal && decModal.classList.contains('active')) closeDecryptModal();
   }
 });
 
@@ -2223,6 +2811,36 @@ function updateAllTotals(){
 
   updatePyramidCard();
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   🆕 [جديد] دالة مؤقتة — ترجمة نافذة فك التشفير ديناميكياً
+   (التنفيذ الكامل في 3-C، هذه فقط placeholder)
+   ═══════════════════════════════════════════════════════════════ */
+function applyDecryptModalTranslations(){
+  const el = document.getElementById('tipDecrypt'); if(el) el.textContent = tr('tipDecrypt');
+  const title = document.querySelector('.decrypt-modal-header h3'); if(title) title.textContent = tr('decryptTitle');
+  const subtitle = document.querySelector('.decrypt-modal-header p'); if(subtitle) subtitle.textContent = tr('decryptSubtitle');
+  const modeTitle = document.querySelector('.decrypt-mode-title'); if(modeTitle) modeTitle.textContent = tr('decryptModeTitle');
+  const labels = document.querySelectorAll('.decrypt-mode-label strong');
+  if(labels[0]) labels[0].textContent = tr('decryptGithubMode');
+  if(labels[1]) labels[1].textContent = tr('decryptLocalMode');
+  const smalls = document.querySelectorAll('.decrypt-mode-label small');
+  if(smalls[0]) smalls[0].textContent = tr('decryptGithubModeHint');
+  if(smalls[1]) smalls[1].textContent = tr('decryptLocalModeHint');
+  const pwLabel = document.querySelector('label[for="decryptPassword"]'); if(pwLabel) pwLabel.textContent = tr('decryptPasswordLabel');
+  const pwInput = document.getElementById('decryptPassword'); if(pwInput) pwInput.placeholder = tr('decryptPasswordPlaceholder');
+  const urlLabel = document.querySelector('label[for="pop4Url"]'); if(urlLabel) urlLabel.textContent = tr('decryptUrlLabel');
+  const urlHint = document.querySelector('.decrypt-field-hint'); if(urlHint) urlHint.textContent = tr('decryptUrlHint');
+  const fileLabel = document.querySelector('label[for="pop4File"]'); if(fileLabel) fileLabel.textContent = tr('decryptFileLabel');
+  const btnConfirm = document.getElementById('btnProcessDecryption'); if(btnConfirm) btnConfirm.textContent = tr('decryptBtnConfirm');
+  const btnCancel = document.querySelector('.decrypt-btn-cancel'); if(btnCancel) btnCancel.textContent = tr('decryptBtnCancel');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ملخص المحفظة — JavaScript (3-B من 3)
+   جلب الأسعار + الحسابات + التشغيل
+   ✅ يحتوي على كل ما في الملف الأصلي بدون حذف
+   ═══════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════
    🌐 دوال جلب الأسعار (مطابقة تماماً للتطبيق الرئيسي)
@@ -2510,7 +3128,7 @@ async function refresh(){
       }
     });
     if (i + CONC < symbols.length) {
-      await new Promise(r => setTimeout(r, 200)); // تأخير بسيط لتجنب الحظر
+      await new Promise(r => setTimeout(r, 200));
     }
   }
 
@@ -2536,6 +3154,9 @@ async function refresh(){
 
 function backToMain(){ location.href = 'index.html'; }
 
+/* ═══════════════════════════════════════════════════════════════
+   🚀 تشغيل التطبيق — init()
+   ═══════════════════════════════════════════════════════════════ */
 (function init(){
   loadSettings();
   applyFontSize();
@@ -2553,9 +3174,400 @@ function backToMain(){ location.href = 'index.html'; }
 
   refresh();
 
-  // ⛔ تم تعطيل التحديث التلقائي — التحديث يدوي فقط عبر زر 🔄
+  // ⛔ التحديث التلقائي معطّل — التحديث يدوي فقط عبر زر 🔄
   // (تم إزالة: setInterval(refresh, 30000); setInterval(fetchDXYPrice, 30000); setInterval(updatePyramidCard, 5000);)
 })();
+/* ═══════════════════════════════════════════════════════════════
+   ملخص المحفظة — JavaScript (3-C من 3 — الجزء الأخير)
+   🆕 [جديد] دوال فك التشفير الكاملة (pop4)
+   ✅ يحتوي على كل ما في الملف الأصلي + إضافات جديدة
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+   🔓 دوال فك التشفير (pop4)
+   تعمل بنفس فكرة index 11.html و index 22.html
+   ═══════════════════════════════════════════════════════════════ */
+
+/**
+ * فتح نافذة فك التشفير
+ */
+function openDecryptModal(){
+  const modal = document.getElementById('decryptModal');
+  if(!modal){ console.error('❌ decryptModal not found'); return; }
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // تصفير الحقول
+  const passEl = document.getElementById('decryptPassword');
+  if(passEl){ passEl.value = ''; setTimeout(() => passEl.focus(), 200); }
+
+  const fileEl = document.getElementById('pop4File');
+  if(fileEl) fileEl.value = '';
+
+  // تصفير الحالة
+  setDecryptStatus('', '');
+
+  // ضبط وضع الاستيراد
+  toggleDecryptImportMode();
+
+  // تطبيق الترجمات
+  try { applyDecryptModalTranslations(); } catch(e) { console.warn('applyDecryptModalTranslations:', e); }
+}
+
+/**
+ * إغلاق نافذة فك التشفير
+ */
+function closeDecryptModal(){
+  const modal = document.getElementById('decryptModal');
+  if(modal){
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  setDecryptStatus('', '');
+
+  // إعادة تفعيل الزر
+  const btn = document.getElementById('btnProcessDecryption');
+  if(btn) btn.disabled = false;
+}
+
+/**
+ * تبديل وضع الاستيراد (GitHub / محلي)
+ */
+function toggleDecryptImportMode(){
+  const mode = document.querySelector('input[name="decryptImportMode"]:checked')?.value || 'github';
+  const githubBlock = document.getElementById('decryptGithubMode');
+  const localBlock = document.getElementById('decryptLocalMode');
+  if(githubBlock) githubBlock.style.display = mode === 'github' ? 'block' : 'none';
+  if(localBlock) localBlock.style.display = mode === 'local' ? 'block' : 'none';
+}
+
+/**
+ * تعيين رسالة الحالة في نافذة فك التشفير
+ * @param {string} message - الرسالة (يمكن أن تحتوي على HTML)
+ * @param {string} type - النوع: 'loading' | 'success' | 'error' | 'warning' | ''
+ */
+function setDecryptStatus(message, type){
+  const el = document.getElementById('decryptStatus');
+  if(!el) return;
+
+  if(!message){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    el.className = 'decrypt-status';
+    return;
+  }
+
+  el.style.display = 'block';
+  el.className = 'decrypt-status status-' + (type || 'loading');
+  el.innerHTML = message;
+}
+
+/**
+ * فك تشفير نص مشفّر باستخدام AES مع كلمة المرور
+ * @param {string} encryptedText - النص المشفّر (CipherText)
+ * @param {string} password - كلمة المرور
+ * @returns {Object} - البيانات المفكوكة (JSON parsed)
+ */
+function decryptText(encryptedText, password){
+  try {
+    const bytes = CryptoJS.AES.decrypt(encryptedText, password);
+    const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+
+    if(!decryptedString || decryptedString.length === 0){
+      throw new Error(tr('decryptErrorWrongPassword'));
+    }
+
+    return JSON.parse(decryptedString);
+  } catch(e){
+    // إذا كان الخطأ هو "Wrong password" بالفعل، أعده كما هو
+    if(e.message && (e.message.includes(tr('decryptErrorWrongPassword')) || e.message === tr('decryptErrorWrongPassword'))){
+      throw e;
+    }
+    throw new Error(tr('decryptErrorWrongPassword'));
+  }
+}
+
+/**
+ * جلب محتوى ملف pop4.json (من GitHub أو من ملف محلي)
+ * @param {string} mode - 'github' | 'local'
+ * @returns {Promise<string>} - محتوى الملف (النص المشفّر)
+ */
+async function fetchPop4Content(mode){
+  // الوضع المحلي: قراءة ملف من الجهاز
+  if(mode === 'local'){
+    const fileInput = document.getElementById('pop4File');
+    const file = fileInput?.files?.[0];
+
+    if(!file){
+      throw new Error(tr('decryptErrorNoFile'));
+    }
+
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error(tr('decryptErrorFileRead')));
+      reader.readAsText(file, 'utf-8');
+    });
+  }
+
+  // وضع GitHub: جلب عبر URL
+  const urlInput = document.getElementById('pop4Url');
+  const url = (urlInput?.value || '').trim();
+
+  if(!url){
+    throw new Error(tr('decryptErrorNoUrl'));
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: 'no-store'
+    });
+
+    if(!res.ok){
+      throw new Error(tr('decryptErrorFetchFailed') + ' (HTTP ' + res.status + ')');
+    }
+
+    return await res.text();
+  } catch(e){
+    if(e.name === 'AbortError'){
+      throw new Error(tr('decryptErrorTimeout'));
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * المعالج الرئيسي لفك التشفير والاستيراد
+ * يجلب الملف → يفك التشفير → يتحقق من البنية → يستعيد البيانات → يعيد التحميل
+ */
+async function processDecryption(){
+  const password = document.getElementById('decryptPassword')?.value || '';
+  const mode = document.querySelector('input[name="decryptImportMode"]:checked')?.value || 'github';
+  const btn = document.getElementById('btnProcessDecryption');
+
+  // التحقق من كلمة المرور
+  if(!password){
+    setDecryptStatus(tr('decryptErrorNoPassword'), 'error');
+    return;
+  }
+
+  // التحقق من مكتبة CryptoJS
+  if(typeof CryptoJS === 'undefined'){
+    setDecryptStatus(tr('decryptErrorNoCrypto'), 'error');
+    return;
+  }
+
+  // تعطيل الزر أثناء المعالجة
+  if(btn) btn.disabled = true;
+  setDecryptStatus(tr('decryptLoading'), 'loading');
+
+  try {
+    // 1. جلب محتوى الملف
+    const encryptedContent = await fetchPop4Content(mode);
+
+    if(!encryptedContent || encryptedContent.trim().length < 10){
+      throw new Error(tr('decryptErrorEmptyFile'));
+    }
+
+    // 2. فك التشفير
+    let decryptedData;
+    try {
+      decryptedData = decryptText(encryptedContent, password);
+    } catch(e){
+      throw new Error(tr('decryptErrorWrongPassword'));
+    }
+
+    // 3. التحقق من البنية
+    if(!decryptedData || typeof decryptedData !== 'object'){
+      throw new Error(tr('decryptErrorInvalidJson'));
+    }
+
+    // التحقق من وجود بيانات متوافقة
+    const hasTable = Array.isArray(decryptedData.table) && decryptedData.table.length > 0;
+    const hasPortfolioData = decryptedData.portfolioData || decryptedData.coins || decryptedData.years;
+    const hasSettings = decryptedData.settings;
+
+    if(!hasTable && !hasPortfolioData && !hasSettings){
+      throw new Error(tr('decryptErrorIncompatible'));
+    }
+
+    // 4. استعادة البيانات (بدون حذف البيانات القديمة — استبدال كامل)
+
+    // 4-a. استعادة الجدول
+    if(hasTable){
+      try {
+        localStorage.setItem(TABLE_KEY, JSON.stringify(decryptedData.table));
+        tableRows = decryptedData.table;
+      } catch(e){
+        console.warn('⚠️ فشل حفظ الجدول:', e);
+      }
+    }
+
+    // 4-b. استعادة الإعدادات
+    if(hasSettings){
+      try {
+        if(decryptedData.settings.lang) currentLang = decryptedData.settings.lang;
+        if(decryptedData.settings.currency) currentCurrency = decryptedData.settings.currency;
+        if(decryptedData.settings.fontScale) fontScale = decryptedData.settings.fontScale;
+        if(typeof decryptedData.settings.hideSensitive === 'boolean') {
+          hideSensitive = decryptedData.settings.hideSensitive;
+        }
+        if(decryptedData.settings.theme === 'light'){
+          document.body.classList.add('light-mode');
+        } else {
+          document.body.classList.remove('light-mode');
+        }
+        saveSettings();
+      } catch(e){
+        console.warn('⚠️ فشل حفظ الإعدادات:', e);
+      }
+    }
+
+    // 4-c. استعادة بيانات المحفظة (portfolioData)
+    if(decryptedData.portfolioData){
+      try {
+        let pd = decryptedData.portfolioData;
+        // إذا كان string (JSON string كما حفظناه)، نحفظه كما هو
+        if(typeof pd === 'string'){
+          localStorage.setItem(LS_KEY_DATA, pd);
+        } else {
+          localStorage.setItem(LS_KEY_DATA, JSON.stringify(pd));
+        }
+      } catch(e){
+        console.warn('⚠️ فشل حفظ portfolioData:', e);
+      }
+    }
+
+    // 4-d. حالة خاصة: إذا كان الملف يحتوي على بيانات المحفظة مباشرة (coins/years)
+    if(decryptedData.coins || decryptedData.years){
+      try {
+        localStorage.setItem(LS_KEY_DATA, JSON.stringify(decryptedData));
+      } catch(e){
+        console.warn('⚠️ فشل حفظ البيانات المباشرة:', e);
+      }
+    }
+
+    // 5. إظهار رسالة النجاح
+    setDecryptStatus('✅ ' + tr('decryptSuccess'), 'success');
+
+    // 6. إعادة تحميل الصفحة لتطبيق كل التغييرات
+    setTimeout(() => {
+      try { location.reload(); } catch(e){}
+    }, 1500);
+
+  } catch(error){
+    console.error('❌ Decryption error:', error);
+    const errMsg = error.message || tr('decryptErrorWrongPassword');
+    setDecryptStatus('❌ ' + errMsg, 'error');
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+/**
+ * تطبيق ترجمات نافذة فك التشفير ديناميكياً
+ * (تُستدعى عند فتح النافذة أو تغيير اللغة)
+ */
+function applyDecryptModalTranslations(){
+  // Tooltip زر الفاب
+  const tipDecrypt = document.getElementById('tipDecrypt');
+  if(tipDecrypt) tipDecrypt.textContent = tr('tipDecrypt');
+
+  // عنوان النافذة
+  const titleEl = document.querySelector('.decrypt-modal-header h3');
+  if(titleEl) titleEl.textContent = tr('decryptTitle');
+
+  const subtitleEl = document.querySelector('.decrypt-modal-header p');
+  if(subtitleEl) subtitleEl.textContent = tr('decryptSubtitle');
+
+  // عنوان وضع الاستيراد
+  const modeTitleEl = document.querySelector('.decrypt-mode-title');
+  if(modeTitleEl) modeTitleEl.textContent = tr('decryptModeTitle');
+
+  // تسميات أوضاع الاستيراد
+  const modeLabels = document.querySelectorAll('.decrypt-mode-label strong');
+  if(modeLabels[0]) modeLabels[0].textContent = tr('decryptGithubMode');
+  if(modeLabels[1]) modeLabels[1].textContent = tr('decryptLocalMode');
+
+  const modeSmalls = document.querySelectorAll('.decrypt-mode-label small');
+  if(modeSmalls[0]) modeSmalls[0].textContent = tr('decryptGithubModeHint');
+  if(modeSmalls[1]) modeSmalls[1].textContent = tr('decryptLocalModeHint');
+
+  // حقل كلمة المرور
+  const pwLabel = document.querySelector('label[for="decryptPassword"]');
+  if(pwLabel) pwLabel.textContent = tr('decryptPasswordLabel');
+
+  const pwInput = document.getElementById('decryptPassword');
+  if(pwInput) pwInput.placeholder = tr('decryptPasswordPlaceholder');
+
+  // حقل رابط GitHub
+  const urlLabel = document.querySelector('label[for="pop4Url"]');
+  if(urlLabel) urlLabel.textContent = tr('decryptUrlLabel');
+
+  const urlHint = document.querySelector('#decryptGithubMode .decrypt-field-hint');
+  if(urlHint) urlHint.textContent = tr('decryptUrlHint');
+
+  // حقل رفع الملف
+  const fileLabel = document.querySelector('label[for="pop4File"]');
+  if(fileLabel) fileLabel.textContent = tr('decryptFileLabel');
+
+  // أزرار النافذة
+  const btnConfirm = document.getElementById('btnProcessDecryption');
+  if(btnConfirm) btnConfirm.textContent = tr('decryptBtnConfirm');
+
+  const btnCancel = document.querySelector('.decrypt-btn-cancel');
+  if(btnCancel) btnCancel.textContent = tr('decryptBtnCancel');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ✅ التهيئة النهائية لدوال فك التشفير
+   (ضمان ربط الأحداث بعد تحميل DOM — لا شيء إضافي مطلوب هنا،
+    لأن كل الأحداث مربوطة via onclick في HTML)
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function(){
+  // تطبيق ترجمات نافذة فك التشفير بمجرد تحميل الصفحة
+  try { applyDecryptModalTranslations(); } catch(e) { console.warn('⚠️:', e); }
+
+  // ربط زر Escape لإغلاق النافذة (احتياط إضافي)
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      const modal = document.getElementById('decryptModal');
+      if(modal && modal.classList.contains('active')) {
+        closeDecryptModal();
+      }
+    }
+  });
+
+  // النقر خارج النافذة لإغلاقها
+  const modal = document.getElementById('decryptModal');
+  if(modal){
+    modal.addEventListener('click', function(e){
+      if(e.target === modal){
+        closeDecryptModal();
+      }
+    });
+  }
+
+  // دعم Enter في حقل كلمة المرور
+  const pwInput = document.getElementById('decryptPassword');
+  if(pwInput){
+    pwInput.addEventListener('keypress', function(e){
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        processDecryption();
+      }
+    });
+  }
+});
+
 </script>
+
 </body>
 </html>
