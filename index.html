@@ -2575,47 +2575,15 @@ document.getElementById('loadFileInput').addEventListener('change', function(e){
 function openDeleteWarning(){ document.getElementById('deleteWarningModal').classList.add('active'); }
 function closeDeleteWarning(){ document.getElementById('deleteWarningModal').classList.remove('active'); }
 function executeDeleteAll(){
-  
-  // 1️⃣ حذف بيانات الصفحة (الجدول + الإعدادات)
-  try { localStorage.removeItem(TABLE_KEY); } catch(e){}
-  try { localStorage.removeItem(LS_KEY_SETTINGS); } catch(e){}
-  
-  // 2️⃣ حذف بيانات المحفظة
-  try { localStorage.removeItem(LS_KEY_DATA); } catch(e){}
-  
-  // 3️⃣ حذف بيانات إدارة رأس المال (بيانات الهرم)
-  try {
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      if (key === TABLE_KEY || key === LS_KEY_SETTINGS) continue;
-      try {
-        const val = localStorage.getItem(key);
-        if (!val || val.length < 100) continue;
-        const parsed = JSON.parse(val);
-        if (parsed && typeof parsed === 'object' && parsed.years && typeof parsed.years === 'object' && (parsed.pyramidTargets || parsed.pyramidWithdrawals)) {
-          keysToRemove.push(key);
-        }
-      } catch (e) {}
-    }
-    keysToRemove.forEach(k => { try { localStorage.removeItem(k); } catch(e){} });
-  } catch (e) {}
-  
-  // 4️⃣ تصفير المتغيرات
+  localStorage.removeItem(TABLE_KEY);
+  localStorage.removeItem(LS_KEY_SETTINGS);
   tableRows = [];
   currentLang = 'ar';
   currentCurrency = 'USD';
   fontScale = 1;
   hideSensitive = false;
-  portfolioInvestedAuto = 0;
-  portfolioCurrentValue = 0;
-  
-  // 5️⃣ إعادة تعيين المظهر
   document.body.classList.remove('light-mode');
   document.body.style.fontSize = '14px';
-  
-  // 6️⃣ إعادة بناء الواجهة
   loadTable();
   renderTable();
   applyFontSize();
@@ -2623,41 +2591,10 @@ function executeDeleteAll(){
   setLang(currentLang);
   updateCurrencyFab();
   updateThemeIcon();
-  
-  // 7️⃣ تصفير العرض
-  refreshAllCardValues();
-  updateAllTotals();
-  
-  const statusEl = document.getElementById('status');
-  if (statusEl) {
-    statusEl.className = 'status err';
-    statusEl.textContent = tr('statusNoData');
-  }
-  
-  // 8️⃣ تصفير بطاقة "لو لم تستثمر"
-  const savingsEl = document.getElementById('pyramidSavingsVal');
-  const investEl  = document.getElementById('pyramidInvestmentVal');
-  const totalEl   = document.getElementById('pyramidTotal');
-  const sourceEl  = document.getElementById('pyramidSource');
-  const inHandEl  = document.getElementById('pyramidInHandVal');
-  
-  if (savingsEl) savingsEl.textContent = fmtMoney(0, 2);
-  if (investEl) {
-    investEl.textContent = tr('pyramidNotInvested');
-    investEl.classList.add('not-invested');
-  }
-  if (totalEl) totalEl.textContent = fmtMoney(0, 2);
-  if (sourceEl) sourceEl.textContent = '';
-  if (inHandEl) inHandEl.textContent = '= ' + fmtMoney(0, 2);
-  
-  // 9️⃣ إغلاق النافذة وإظهار الرسالة
+  refresh();
+  updatePyramidCard();
   closeDeleteWarning();
   showToast(tr('deletedSuccess'), 'success');
-  
-  // 🔟 إعادة تحميل الصفحة بعد 2 ثانية
-  setTimeout(() => {
-    try { location.reload(); } catch(e){}
-  }, 2000);
 }
 document.getElementById('deleteWarningModal').addEventListener('click', function(e){
   if(e.target === this) closeDeleteWarning();
