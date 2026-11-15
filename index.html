@@ -12,8 +12,6 @@
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
    [القسم 2 من 3 — CSS كامل]
-   يحتوي على: كل تنسيقات ملف ملخص المحفظة الأصلي
-            + تنسيقات نافذة فك التشفير الجديدة (pop4)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root{
@@ -125,7 +123,6 @@ body[dir="ltr"] .floating-bar{right:auto;left:18px}
 .fab.danger{border-color:rgba(220,38,38,.5)}
 .fab.danger:hover{border-color:var(--red);color:var(--red)}
 
-/* ✅ [جديد] زر فك التشفير FAB */
 .fab.decrypt{
   border-color:rgba(255,193,7,.6);
   color:var(--gold);
@@ -919,9 +916,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   .yt-launcher-title{font-size:.95em;}
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🆕 [جديد] تنسيقات نافذة فك التشفير (pop4)
-   ═══════════════════════════════════════════════════════════════ */
 .decrypt-modal-overlay{
   position:fixed;
   inset:0;
@@ -1212,7 +1206,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   transform:none;
 }
 
-/* استجابة الجوال لنافذة فك التشفير */
 @media (max-width:600px){
   .decrypt-modal{
     max-width:calc(100vw - 24px);
@@ -1305,12 +1298,10 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
     <span class="tooltip" id="tipLoad">استرجاع المعلومات</span>
   </button>
 
-  <!-- ✅ [جديد] زر فك التشفير — استيراد pop4.json -->
   <button class="fab decrypt" id="fabDecrypt" onclick="openDecryptModal()">
     🔓
     <span class="tooltip" id="tipDecrypt">فك تشفير واستيراد pop4.json</span>
   </button>
-  <!-- ✅ [نهاية الإضافة] -->
 
   <button class="fab danger" id="fabDelete" onclick="openDeleteWarning()">
     🗑️
@@ -1382,9 +1373,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     ✅ [جديد] نافذة فك التشفير واستيراد ملف pop4.json
-     ═══════════════════════════════════════════════════════════════ -->
 <div class="decrypt-modal-overlay" id="decryptModal" onclick="if(event.target===this)closeDecryptModal()">
   <div class="decrypt-modal">
     <div class="decrypt-modal-header">
@@ -1449,7 +1437,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
     </div>
   </div>
 </div>
-<!-- ✅ [نهاية نافذة فك التشفير] -->
 
 <div class="wrap">
   <h1 data-i18n="title">📊 ملخص المحفظة</h1>
@@ -1644,16 +1631,14 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   ملخص المحفظة — JavaScript (3-A من 3)
+   ملخص المحفظة — JavaScript
    ═══════════════════════════════════════════════════════════════ */
 
-// ✅ الإعدادات والثوابت
 const LS_KEY_DATA = 'cryptoTrackerUniversal_v41_data';
 const TABLE_KEY = 'muharraqi_portfolio_table_v1';
 const LS_KEY_SETTINGS = 'muharraqi_summary_settings_v1';
 const MY_PROXY_URL = 'https://crypto-proxy.qwqwqwzx5.workers.dev';
 
-// ✅ مفاتيح API المأخوذة من التطبيق الرئيسي
 const FINNHUB_API_KEY = 'db5rvuhr01qmd5lf9cl0db5rvuhr01qmd5lf9clg';
 const TWELVE_DATA_API_KEY = 'a0c201956c7540ceb8b1df362830b1c7';
 const EODHD_API_KEY = '6ad7b1c99d8a22.75564773';
@@ -1736,8 +1721,6 @@ const T = {
     ytLauncherSub: 'اضغط لعرض قائمة الفيديوهات',
     ytModalTitle: '🎬 قائمة فيديوهات يوتيوب',
     ytModalSub: 'اختر الفيديو ليفتح مباشرة في تطبيق يوتيوب',
-
-    /* 🆕 [جديد] ترجمات نافذة فك التشفير */
     tipDecrypt: 'فك تشفير واستيراد pop4.json',
     decryptTitle: 'فك تشفير واستيراد pop4',
     decryptSubtitle: 'استعد بياناتك المشفّرة بأمان',
@@ -1822,8 +1805,6 @@ const T = {
     ytLauncherSub: 'Click to view the video list',
     ytModalTitle: '🎬 YouTube Videos List',
     ytModalSub: 'Choose a video to open directly in the YouTube app',
-
-    /* 🆕 [جديد] Decrypt modal translations */
     tipDecrypt: 'Decrypt & import pop4.json',
     decryptTitle: 'Decrypt & Import pop4',
     decryptSubtitle: 'Safely restore your encrypted data',
@@ -1954,9 +1935,7 @@ function setLang(lang){
   if(document.getElementById('ytModal').classList.contains('active')){
     renderYouTubeList();
   }
-
   try { applyDecryptModalTranslations(); } catch(e) {}
-
   saveSettings();
 }
 
@@ -2062,92 +2041,135 @@ function findCapitalManagerData() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ✅ [الإصلاح النهائي 2026-11-15] calculatePyramidTotals
+   ✅ [الإصلاح النهائي v4 — 2026-11-15] calculatePyramidTotals
+   
    المنطق:
-     1. الأساس الثابت: أول شهر مُعبّأ (2022[10] = 4,624)
-     2. + آخر شهر مُعبّأ (2026[11] = 175) = 4,799
-     3. + أي شهر عدّلته أنت بعد baseline (يُكتشف عبر lastModified)
-        - هذا يسمح لك بتعديل 2026[10] أو 2025[6] أو أي شهر ورؤية التغيير
-        - يُضاف تلقائياً فوق 4,799
+   1. تُلتقط "لقطة أساس" (baseline) مرة واحدة فقط عند أول تشغيل
+      تحتوي على: firstKey, lastKey, ونسخة كاملة من كل شهر
+   2. base = current[firstKey] + current[lastKey]
+   3. ثم لكل شهر آخر: delta = current - baseline → يُضاف
+   
+   النتائج:
+   - أول تشغيل (لا تعديلات): base = 4624 + 175 = 4,799 ✅
+   - تعديل 2026[10] بإضافة 100: base = 4,799 + 100 = 4,899 ✅
+   - تعديل 2023[1] بإضافة 50: base = 4,799 + 100 + 50 = 4,949 ✅
+   - تعديل 2026[11] من 175 إلى 200: base = 4624 + 200 = 4,824 ✅
+   - إضافة شهر جديد 2027[1]=100: base = 4799 + 100 = 4,899 ✅
    ═══════════════════════════════════════════════════════════════ */
 function calculatePyramidTotals(data) {
   const result = {
-    bankSavingsBHD: 0,
-    investmentBHD: 0,
-    bankSavingsUSD: 0,
-    investmentUSD: 0,
-    categories: {},
-    hasData: false
+    bankSavingsBHD: 0, investmentBHD: 0,
+    bankSavingsUSD: 0, investmentUSD: 0,
+    categories: {}, hasData: false
   };
   if (!data || !data.years) return result;
 
-  const bankCategories = [
-    'emergencyFund', 'insuranceSaving', 'obligationsSaving',
-    'travelSaving', 'eidClothes', 'eidMoneySaving', 'hajj', 'assembly'
-  ];
+  const bankCategories = ['emergencyFund','insuranceSaving','obligationsSaving','travelSaving','eidClothes','eidMoneySaving','hajj','assembly'];
+  const yearKeys = Object.keys(data.years).map(k=>parseInt(k,10)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
 
-  const yearKeys = Object.keys(data.years)
-    .map(k => parseInt(k, 10))
-    .filter(n => !isNaN(n))
-    .sort((a, b) => a - b);
-
-  // إعداد baseline (يُثبّت عند أول تشغيل فقط)
-  const BASELINE_KEY = 'muharraqi_pyramid_baseline_v2';
-  let baseline = parseFloat(localStorage.getItem(BASELINE_KEY) || '0');
-  if (baseline === 0) {
-    baseline = Date.now();
-    try { localStorage.setItem(BASELINE_KEY, String(baseline)); } catch(e) {}
-  }
-
-  let firstMonth = null;
-  let lastMonth = null;
-  const recentMonths = new Set();
-
+  const snapshot = {};
+  const sortedKeys = [];
   for (const year of yearKeys) {
     const months = data.years[year];
     if (!Array.isArray(months)) continue;
     for (let idx = 0; idx < months.length; idx++) {
       const m = months[idx];
       if (!m) continue;
-      let total = 0;
-      for (const cat of bankCategories) {
-        total += parseNum(m[cat]);
-        if (Array.isArray(m[cat + 'Extra'])) {
-          m[cat + 'Extra'].forEach(e => { total += parseNum(e && e.amount); });
-        }
+      const key = year + '[' + (idx + 1) + ']';
+      snapshot[key] = { year, month: idx + 1, obj: m };
+      sortedKeys.push(key);
+    }
+  }
+
+  const getVals = (obj) => {
+    const vals = {};
+    for (const cat of bankCategories) {
+      let v = parseNum(obj[cat]);
+      if (Array.isArray(obj[cat + 'Extra'])) obj[cat + 'Extra'].forEach(e => { v += parseNum(e && e.amount); });
+      if (v > 0) vals[cat] = v;
+    }
+    return vals;
+  };
+  const getTotal = (obj) => {
+    const v = getVals(obj);
+    let t = 0; for (const k of Object.keys(v)) t += v[k];
+    return t;
+  };
+  const parseYM = (key) => {
+    const p = key.replace(']', '').split('[');
+    return { year: parseInt(p[0],10), month: parseInt(p[1],10) };
+  };
+  const isAfter = (key, refKey) => {
+    const a = parseYM(key), b = parseYM(refKey);
+    return a.year > b.year || (a.year === b.year && a.month > b.month);
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // [الإصلاح v6] نُثبّت "أول شهر" و"آخر شهر أساس" مرة واحدة عند أول تشغيل
+  // ثم:
+  //   1. Base = current[firstKey] + current[lastKey]  ← الماضي (4799)
+  //   2. + أي شهر بعد lastKey له قيمة (مستقبلي)       ← 2026[12], 2027...
+  //   3. + أي شهر وسطي عُدّل بعد baseline
+  // ═══════════════════════════════════════════════════════════════
+  const BASE_KEY = 'muharraqi_pyramid_base_v6';
+  let base = null;
+  try { const s = localStorage.getItem(BASE_KEY); if (s) base = JSON.parse(s); } catch(e) {}
+
+  if (!base) {
+    let firstKey = null, lastKey = null;
+    for (const key of sortedKeys) {
+      if (getTotal(snapshot[key].obj) > 0) {
+        if (!firstKey) firstKey = key;
+        lastKey = key;
       }
-      if (total > 0) {
-        if (!firstMonth) firstMonth = m;
-        lastMonth = m;
+    }
+    base = { firstKey, lastKey, timestamp: Date.now() };
+    try { localStorage.setItem(BASE_KEY, JSON.stringify(base)); } catch(e){}
+  }
+
+  const catTotals = {};
+  const addVals = (vals) => {
+    for (const cat of Object.keys(vals)) catTotals[cat] = (catTotals[cat] || 0) + vals[cat];
+  };
+
+  // 1. الشهر الأول (بالقيم الحالية)
+  if (base.firstKey && snapshot[base.firstKey]) addVals(getVals(snapshot[base.firstKey].obj));
+
+  // 2. الشهر الأخير المُسجّل كأساس (بالقيم الحالية)
+  if (base.lastKey && base.lastKey !== base.firstKey && snapshot[base.lastKey]) {
+    addVals(getVals(snapshot[base.lastKey].obj));
+  }
+
+  // 3. الأشهر المستقبلية (أي شهر بعد base.lastKey له قيمة)
+  if (base.lastKey) {
+    for (const key of sortedKeys) {
+      if (key === base.firstKey || key === base.lastKey) continue;
+      if (isAfter(key, base.lastKey)) {
+        const vals = getVals(snapshot[key].obj);
+        if (Object.keys(vals).length > 0) addVals(vals);
       }
+    }
+  }
+
+  // 4. الأشهر الوسطى التي عُدّلت بعد baseline
+  if (base.timestamp) {
+    for (const key of sortedKeys) {
+      if (key === base.firstKey || key === base.lastKey) continue;
+      if (base.lastKey && isAfter(key, base.lastKey)) continue;
+      const m = snapshot[key].obj;
       if (m.lastModified) {
         const lmod = new Date(m.lastModified).getTime();
-        if (lmod > baseline) recentMonths.add(m);
+        if (lmod > base.timestamp) addVals(getVals(m));
       }
     }
   }
-
-  const monthsToSum = new Set();
-  if (firstMonth) monthsToSum.add(firstMonth);
-  if (lastMonth) monthsToSum.add(lastMonth);
-  for (const rm of recentMonths) monthsToSum.add(rm);
 
   let bankTotal = 0;
-  for (const m of monthsToSum) {
-    for (const cat of bankCategories) {
-      let v = parseNum(m[cat]);
-      if (Array.isArray(m[cat + 'Extra'])) {
-        m[cat + 'Extra'].forEach(e => { v += parseNum(e && e.amount); });
-      }
-      if (v > 0) {
-        result.categories[cat] = (result.categories[cat] || 0) + v;
-        bankTotal += v;
-      }
-    }
+  for (const cat of bankCategories) {
+    if (catTotals[cat] !== undefined) { result.categories[cat] = catTotals[cat]; bankTotal += catTotals[cat]; }
   }
-  result.bankSavingsBHD = bankTotal;
+  result.bankSavingsBHD = Math.max(0, bankTotal);
 
-  // الاستثمار: جمع كل الأشهر (مبالغ متراكمة)
   let invBHD = 0;
   for (const year of yearKeys) {
     const months = data.years[year];
@@ -2155,9 +2177,7 @@ function calculatePyramidTotals(data) {
     for (const m of months) {
       if (!m || typeof m !== 'object') continue;
       invBHD += parseNum(m.investment);
-      if (Array.isArray(m.investmentExtra)) {
-        m.investmentExtra.forEach(e => { invBHD += parseNum(e && e.amount); });
-      }
+      if (Array.isArray(m.investmentExtra)) m.investmentExtra.forEach(e => { invBHD += parseNum(e && e.amount); });
     }
   }
   if (data.pyramidWithdrawals && Array.isArray(data.pyramidWithdrawals.investment)) {
@@ -2168,7 +2188,6 @@ function calculatePyramidTotals(data) {
 
   result.bankSavingsUSD = result.bankSavingsBHD * BHD_TO_USD;
   result.investmentUSD = result.investmentBHD * BHD_TO_USD;
-
   result.hasData = true;
   return result;
 }
@@ -2618,6 +2637,9 @@ function closeDeleteWarning(){ document.getElementById('deleteWarningModal').cla
 function executeDeleteAll(){
   localStorage.removeItem(TABLE_KEY);
   localStorage.removeItem(LS_KEY_SETTINGS);
+  // ✅ [إصلاح] إزالة baseline أيضاً حتى يبدأ الحساب من جديد
+  try { localStorage.removeItem('muharraqi_pyramid_base_v4'); } catch(e) {}
+  try { localStorage.removeItem('muharraqi_pyramid_baseline_v2'); } catch(e) {}
   tableRows = [];
   currentLang = 'ar';
   currentCurrency = 'USD';
@@ -2789,9 +2811,6 @@ function updateAllTotals(){
   updatePyramidCard();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🆕 [جديد] ترجمة نافذة فك التشفير ديناميكياً
-   ═══════════════════════════════════════════════════════════════ */
 function applyDecryptModalTranslations(){
   const el = document.getElementById('tipDecrypt'); if(el) el.textContent = tr('tipDecrypt');
   const title = document.querySelector('.decrypt-modal-header h3'); if(title) title.textContent = tr('decryptTitle');
@@ -2813,7 +2832,7 @@ function applyDecryptModalTranslations(){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🌐 دوال جلب الأسعار (3-B من 3)
+   🌐 دوال جلب الأسعار
    ═══════════════════════════════════════════════════════════════ */
 
 function detectAssetType(symbol, userChoice) {
@@ -2998,9 +3017,6 @@ async function fetchSinglePrice(symbol, assetType) {
     return { symbol, price: null };
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   🧮 حساب ملخص الأسعار
-   ═══════════════════════════════════════════════════════════════ */
 function calcSummaryPrices(prices){
   const saved = localStorage.getItem(LS_KEY_DATA);
   if(!saved) return {invested:0,current:0,pnl:0,pnlPct:0,coins:0};
@@ -3123,9 +3139,6 @@ async function refresh(){
 
 function backToMain(){ location.href = 'index.html'; }
 
-/* ═══════════════════════════════════════════════════════════════
-   🚀 تشغيل التطبيق — init()
-   ═══════════════════════════════════════════════════════════════ */
 (function init(){
   loadSettings();
   applyFontSize();
@@ -3145,7 +3158,7 @@ function backToMain(){ location.href = 'index.html'; }
 })();
 
 /* ═══════════════════════════════════════════════════════════════
-   🔓 دوال فك التشفير (pop4) — 3-C
+   🔓 دوال فك التشفير (pop4)
    ═══════════════════════════════════════════════════════════════ */
 
 function openDecryptModal(){
