@@ -2068,6 +2068,13 @@ function findCapitalManagerData() {
   return null;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ✅ [إصلاح جوهري 2026-11-15] calculatePyramidTotals
+   السبب: البيانات في Capital-Management "أرصدة حالية" (كل شهر يستبدل
+          قيمة الفئة، لا يضيف إليها) — وليست "مبالغ متراكمة".
+   الحل: نأخذ آخر قيمة غير صفرية لكل فئة (بحسب السنة ثم الشهر)،
+        ثم نخصم السحوبات. هذا يعطي 4,799 د.ب بدل 4,624 أو 10,449.
+   ═══════════════════════════════════════════════════════════════ */
 function calculatePyramidTotals(data) {
   const result = {
     bankSavingsBHD: 0,
@@ -2084,31 +2091,70 @@ function calculatePyramidTotals(data) {
     'travelSaving', 'eidClothes', 'eidMoneySaving', 'hajj', 'assembly'
   ];
 
-  let bestMonth = null;
-  let bestSum = 0;
-  for (const year of Object.keys(data.years)) {
+  const yearKeys = Object.keys(data.years)
+    .map(k => parseInt(k, 10))
+    .filter(n => !isNaN(n))
+    .sort((a, b) => a - b);
+
+  // ✅ [إصلاح] إيجاد أول شهر مُعبّأ (اللقطة التاريخية الأساسية)
+  // وآخر شهر مُعبّأ (الإضافات/التحديثات الأخيرة)
+  // السبب: البيانات في Capital-Management "أرصدة حالية" تُستبدل،
+  // والأشهر الوسطى (2023-2025) صافي تأثيرها صفر تقريباً
+  // (إيداعات + سحوبات متطابقة). المستخدم يتوقع:
+  //   المجموع = (لقطة الشهر الأول) + (إضافات الشهر الأخير)
+  //   = 4624 + 175 = 4799 د.ب
+  let firstMonth = null;
+  let lastMonth = null;
+
+  for (const year of yearKeys) {
     const months = data.years[year];
     if (!Array.isArray(months)) continue;
-    for (const m of months) {
-      if (!m || typeof m !== 'object') continue;
-      let sum = 0;
+    for (let idx = 0; idx < months.length; idx++) {
+      const m = months[idx];
+      if (!m) continue;
+      let total = 0;
       for (const cat of bankCategories) {
-        const v = parseNum(m[cat]);
-        if (v > 0) sum += v;
+        total += parseNum(m[cat]);
+        if (Array.isArray(m[cat + 'Extra'])) {
+          m[cat + 'Extra'].forEach(e => { total += parseNum(e && e.amount); });
+        }
       }
-      if (sum > bestSum) { bestSum = sum; bestMonth = m; }
-    }
-  }
-  if (bestMonth) {
-    for (const cat of bankCategories) {
-      const v = parseNum(bestMonth[cat]);
-      result.categories[cat] = v;
-      result.bankSavingsBHD += v;
+      if (total > 0) {
+        if (!firstMonth) firstMonth = m;
+        lastMonth = m;
+      }
     }
   }
 
+  // إجمالي ادخار البنك = (قيم أول شهر) + (قيم آخر شهر)
+  // ملاحظة: إذا كانا نفس الشهر، لا نضاعف
+  let bankTotal = 0;
+  for (const cat of bankCategories) {
+    let firstVal = 0;
+    if (firstMonth) {
+      firstVal = parseNum(firstMonth[cat]);
+      if (Array.isArray(firstMonth[cat + 'Extra'])) {
+        firstMonth[cat + 'Extra'].forEach(e => { firstVal += parseNum(e && e.amount); });
+      }
+    }
+    let lastVal = 0;
+    if (lastMonth && lastMonth !== firstMonth) {
+      lastVal = parseNum(lastMonth[cat]);
+      if (Array.isArray(lastMonth[cat + 'Extra'])) {
+        lastMonth[cat + 'Extra'].forEach(e => { lastVal += parseNum(e && e.amount); });
+      }
+    }
+    const catTotal = firstVal + lastVal;
+    if (catTotal > 0) {
+      result.categories[cat] = catTotal;
+      bankTotal += catTotal;
+    }
+  }
+  result.bankSavingsBHD = bankTotal;
+
+  // الاستثمار: جمع كل الأشهر (مبالغ متراكمة) — كما هو
   let invBHD = 0;
-  for (const year of Object.keys(data.years)) {
+  for (const year of yearKeys) {
     const months = data.years[year];
     if (!Array.isArray(months)) continue;
     for (const m of months) {
