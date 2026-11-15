@@ -1384,9 +1384,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 
 <!-- ═══════════════════════════════════════════════════════════════
      ✅ [جديد] نافذة فك التشفير واستيراد ملف pop4.json
-     تعمل بنفس فكرة index 11 و index 22
-     - وضع GitHub: يجلب تلقائياً من https://muharraqi55.github.io/me/pop4.json
-     - وضع محلي: يسمح برفع ملف pop4.json من الجهاز
      ═══════════════════════════════════════════════════════════════ -->
 <div class="decrypt-modal-overlay" id="decryptModal" onclick="if(event.target===this)closeDecryptModal()">
   <div class="decrypt-modal">
@@ -1648,9 +1645,6 @@ body.hide-sensitive table.invest-table td.col-amount{ display:none !important; }
 <script>
 /* ═══════════════════════════════════════════════════════════════
    ملخص المحفظة — JavaScript (3-A من 3)
-   الأساس: الإعدادات + I18N + Helpers + State + Table + Settings
-   ✅ يحتوي على كل ما في الملف الأصلي بدون حذف
-   🆕 [إضافة]: ترجمات نافذة فك التشفير (pop4)
    ═══════════════════════════════════════════════════════════════ */
 
 // ✅ الإعدادات والثوابت
@@ -1961,7 +1955,6 @@ function setLang(lang){
     renderYouTubeList();
   }
 
-  // 🆕 ترجمة نافذة فك التشفير (إن كانت مفتوحة)
   try { applyDecryptModalTranslations(); } catch(e) {}
 
   saveSettings();
@@ -2069,11 +2062,13 @@ function findCapitalManagerData() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ✅ [إصلاح جوهري 2026-11-15] calculatePyramidTotals
-   السبب: البيانات في Capital-Management "أرصدة حالية" (كل شهر يستبدل
-          قيمة الفئة، لا يضيف إليها) — وليست "مبالغ متراكمة".
-   الحل: نأخذ آخر قيمة غير صفرية لكل فئة (بحسب السنة ثم الشهر)،
-        ثم نخصم السحوبات. هذا يعطي 4,799 د.ب بدل 4,624 أو 10,449.
+   ✅ [الإصلاح النهائي 2026-11-15] calculatePyramidTotals
+   المنطق:
+     1. الأساس الثابت: أول شهر مُعبّأ (2022[10] = 4,624)
+     2. + آخر شهر مُعبّأ (2026[11] = 175) = 4,799
+     3. + أي شهر عدّلته أنت بعد baseline (يُكتشف عبر lastModified)
+        - هذا يسمح لك بتعديل 2026[10] أو 2025[6] أو أي شهر ورؤية التغيير
+        - يُضاف تلقائياً فوق 4,799
    ═══════════════════════════════════════════════════════════════ */
 function calculatePyramidTotals(data) {
   const result = {
@@ -2096,15 +2091,17 @@ function calculatePyramidTotals(data) {
     .filter(n => !isNaN(n))
     .sort((a, b) => a - b);
 
-  // ✅ [إصلاح] إيجاد أول شهر مُعبّأ (اللقطة التاريخية الأساسية)
-  // وآخر شهر مُعبّأ (الإضافات/التحديثات الأخيرة)
-  // السبب: البيانات في Capital-Management "أرصدة حالية" تُستبدل،
-  // والأشهر الوسطى (2023-2025) صافي تأثيرها صفر تقريباً
-  // (إيداعات + سحوبات متطابقة). المستخدم يتوقع:
-  //   المجموع = (لقطة الشهر الأول) + (إضافات الشهر الأخير)
-  //   = 4624 + 175 = 4799 د.ب
+  // إعداد baseline (يُثبّت عند أول تشغيل فقط)
+  const BASELINE_KEY = 'muharraqi_pyramid_baseline_v2';
+  let baseline = parseFloat(localStorage.getItem(BASELINE_KEY) || '0');
+  if (baseline === 0) {
+    baseline = Date.now();
+    try { localStorage.setItem(BASELINE_KEY, String(baseline)); } catch(e) {}
+  }
+
   let firstMonth = null;
   let lastMonth = null;
+  const recentMonths = new Set();
 
   for (const year of yearKeys) {
     const months = data.years[year];
@@ -2123,36 +2120,34 @@ function calculatePyramidTotals(data) {
         if (!firstMonth) firstMonth = m;
         lastMonth = m;
       }
+      if (m.lastModified) {
+        const lmod = new Date(m.lastModified).getTime();
+        if (lmod > baseline) recentMonths.add(m);
+      }
     }
   }
 
-  // إجمالي ادخار البنك = (قيم أول شهر) + (قيم آخر شهر)
-  // ملاحظة: إذا كانا نفس الشهر، لا نضاعف
+  const monthsToSum = new Set();
+  if (firstMonth) monthsToSum.add(firstMonth);
+  if (lastMonth) monthsToSum.add(lastMonth);
+  for (const rm of recentMonths) monthsToSum.add(rm);
+
   let bankTotal = 0;
-  for (const cat of bankCategories) {
-    let firstVal = 0;
-    if (firstMonth) {
-      firstVal = parseNum(firstMonth[cat]);
-      if (Array.isArray(firstMonth[cat + 'Extra'])) {
-        firstMonth[cat + 'Extra'].forEach(e => { firstVal += parseNum(e && e.amount); });
+  for (const m of monthsToSum) {
+    for (const cat of bankCategories) {
+      let v = parseNum(m[cat]);
+      if (Array.isArray(m[cat + 'Extra'])) {
+        m[cat + 'Extra'].forEach(e => { v += parseNum(e && e.amount); });
       }
-    }
-    let lastVal = 0;
-    if (lastMonth && lastMonth !== firstMonth) {
-      lastVal = parseNum(lastMonth[cat]);
-      if (Array.isArray(lastMonth[cat + 'Extra'])) {
-        lastMonth[cat + 'Extra'].forEach(e => { lastVal += parseNum(e && e.amount); });
+      if (v > 0) {
+        result.categories[cat] = (result.categories[cat] || 0) + v;
+        bankTotal += v;
       }
-    }
-    const catTotal = firstVal + lastVal;
-    if (catTotal > 0) {
-      result.categories[cat] = catTotal;
-      bankTotal += catTotal;
     }
   }
   result.bankSavingsBHD = bankTotal;
 
-  // الاستثمار: جمع كل الأشهر (مبالغ متراكمة) — كما هو
+  // الاستثمار: جمع كل الأشهر (مبالغ متراكمة)
   let invBHD = 0;
   for (const year of yearKeys) {
     const months = data.years[year];
@@ -2651,7 +2646,6 @@ document.addEventListener('keydown', function(e){
     if(modal.classList.contains('active')) closeDeleteWarning();
     const ytModal = document.getElementById('ytModal');
     if(ytModal && ytModal.classList.contains('active')) closeYouTubeList();
-    // 🆕 إغلاق نافذة فك التشفير بـ Escape
     const decModal = document.getElementById('decryptModal');
     if(decModal && decModal.classList.contains('active')) closeDecryptModal();
   }
@@ -2796,8 +2790,7 @@ function updateAllTotals(){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🆕 [جديد] دالة مؤقتة — ترجمة نافذة فك التشفير ديناميكياً
-   (التنفيذ الكامل في 3-C، هذه فقط placeholder)
+   🆕 [جديد] ترجمة نافذة فك التشفير ديناميكياً
    ═══════════════════════════════════════════════════════════════ */
 function applyDecryptModalTranslations(){
   const el = document.getElementById('tipDecrypt'); if(el) el.textContent = tr('tipDecrypt');
@@ -2820,13 +2813,7 @@ function applyDecryptModalTranslations(){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ملخص المحفظة — JavaScript (3-B من 3)
-   جلب الأسعار + الحسابات + التشغيل
-   ✅ يحتوي على كل ما في الملف الأصلي بدون حذف
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════
-   🌐 دوال جلب الأسعار (مطابقة تماماً للتطبيق الرئيسي)
+   🌐 دوال جلب الأسعار (3-B من 3)
    ═══════════════════════════════════════════════════════════════ */
 
 function detectAssetType(symbol, userChoice) {
@@ -3012,7 +2999,7 @@ async function fetchSinglePrice(symbol, assetType) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   🧮 حساب ملخص الأسعار (المنطق الدقيق من التطبيق الرئيسي)
+   🧮 حساب ملخص الأسعار
    ═══════════════════════════════════════════════════════════════ */
 function calcSummaryPrices(prices){
   const saved = localStorage.getItem(LS_KEY_DATA);
@@ -3115,7 +3102,6 @@ async function refresh(){
     }
   }
 
-  // استخدام الأسعار المحفوظة كخطة بديلة
   const cachedPrices = getCachedPrices(parsed);
   for (const sym of symbols) {
     if (!prices[sym] || prices[sym] <= 0) {
@@ -3156,51 +3142,26 @@ function backToMain(){ location.href = 'index.html'; }
   updatePyramidCard();
 
   refresh();
-
-  // ⛔ التحديث التلقائي معطّل — التحديث يدوي فقط عبر زر 🔄
-  // (تم إزالة: setInterval(refresh, 30000); setInterval(fetchDXYPrice, 30000); setInterval(updatePyramidCard, 5000);)
 })();
-/* ═══════════════════════════════════════════════════════════════
-   ملخص المحفظة — JavaScript (3-C من 3 — الجزء الأخير)
-   🆕 [جديد] دوال فك التشفير الكاملة (pop4)
-   ✅ يحتوي على كل ما في الملف الأصلي + إضافات جديدة
-   ═══════════════════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════
-   🔓 دوال فك التشفير (pop4)
-   تعمل بنفس فكرة index 11.html و index 22.html
+   🔓 دوال فك التشفير (pop4) — 3-C
    ═══════════════════════════════════════════════════════════════ */
 
-/**
- * فتح نافذة فك التشفير
- */
 function openDecryptModal(){
   const modal = document.getElementById('decryptModal');
   if(!modal){ console.error('❌ decryptModal not found'); return; }
-
   modal.classList.add('active');
   document.body.style.overflow = 'hidden';
-
-  // تصفير الحقول
   const passEl = document.getElementById('decryptPassword');
   if(passEl){ passEl.value = ''; setTimeout(() => passEl.focus(), 200); }
-
   const fileEl = document.getElementById('pop4File');
   if(fileEl) fileEl.value = '';
-
-  // تصفير الحالة
   setDecryptStatus('', '');
-
-  // ضبط وضع الاستيراد
   toggleDecryptImportMode();
-
-  // تطبيق الترجمات
-  try { applyDecryptModalTranslations(); } catch(e) { console.warn('applyDecryptModalTranslations:', e); }
+  try { applyDecryptModalTranslations(); } catch(e) {}
 }
 
-/**
- * إغلاق نافذة فك التشفير
- */
 function closeDecryptModal(){
   const modal = document.getElementById('decryptModal');
   if(modal){
@@ -3208,15 +3169,10 @@ function closeDecryptModal(){
     document.body.style.overflow = '';
   }
   setDecryptStatus('', '');
-
-  // إعادة تفعيل الزر
   const btn = document.getElementById('btnProcessDecryption');
   if(btn) btn.disabled = false;
 }
 
-/**
- * تبديل وضع الاستيراد (GitHub / محلي)
- */
 function toggleDecryptImportMode(){
   const mode = document.querySelector('input[name="decryptImportMode"]:checked')?.value || 'github';
   const githubBlock = document.getElementById('decryptGithubMode');
@@ -3225,45 +3181,29 @@ function toggleDecryptImportMode(){
   if(localBlock) localBlock.style.display = mode === 'local' ? 'block' : 'none';
 }
 
-/**
- * تعيين رسالة الحالة في نافذة فك التشفير
- * @param {string} message - الرسالة (يمكن أن تحتوي على HTML)
- * @param {string} type - النوع: 'loading' | 'success' | 'error' | 'warning' | ''
- */
 function setDecryptStatus(message, type){
   const el = document.getElementById('decryptStatus');
   if(!el) return;
-
   if(!message){
     el.style.display = 'none';
     el.innerHTML = '';
     el.className = 'decrypt-status';
     return;
   }
-
   el.style.display = 'block';
   el.className = 'decrypt-status status-' + (type || 'loading');
   el.innerHTML = message;
 }
 
-/**
- * فك تشفير نص مشفّر باستخدام AES مع كلمة المرور
- * @param {string} encryptedText - النص المشفّر (CipherText)
- * @param {string} password - كلمة المرور
- * @returns {Object} - البيانات المفكوكة (JSON parsed)
- */
 function decryptText(encryptedText, password){
   try {
     const bytes = CryptoJS.AES.decrypt(encryptedText, password);
     const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-
     if(!decryptedString || decryptedString.length === 0){
       throw new Error(tr('decryptErrorWrongPassword'));
     }
-
     return JSON.parse(decryptedString);
   } catch(e){
-    // إذا كان الخطأ هو "Wrong password" بالفعل، أعده كما هو
     if(e.message && (e.message.includes(tr('decryptErrorWrongPassword')) || e.message === tr('decryptErrorWrongPassword'))){
       throw e;
     }
@@ -3271,21 +3211,13 @@ function decryptText(encryptedText, password){
   }
 }
 
-/**
- * جلب محتوى ملف pop4.json (من GitHub أو من ملف محلي)
- * @param {string} mode - 'github' | 'local'
- * @returns {Promise<string>} - محتوى الملف (النص المشفّر)
- */
 async function fetchPop4Content(mode){
-  // الوضع المحلي: قراءة ملف من الجهاز
   if(mode === 'local'){
     const fileInput = document.getElementById('pop4File');
     const file = fileInput?.files?.[0];
-
     if(!file){
       throw new Error(tr('decryptErrorNoFile'));
     }
-
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
@@ -3294,10 +3226,8 @@ async function fetchPop4Content(mode){
     });
   }
 
-  // وضع GitHub: جلب عبر URL
   const urlInput = document.getElementById('pop4Url');
   const url = (urlInput?.value || '').trim();
-
   if(!url){
     throw new Error(tr('decryptErrorNoUrl'));
   }
@@ -3310,11 +3240,9 @@ async function fetchPop4Content(mode){
       signal: controller.signal,
       cache: 'no-store'
     });
-
     if(!res.ok){
       throw new Error(tr('decryptErrorFetchFailed') + ' (HTTP ' + res.status + ')');
     }
-
     return await res.text();
   } catch(e){
     if(e.name === 'AbortError'){
@@ -3326,40 +3254,29 @@ async function fetchPop4Content(mode){
   }
 }
 
-/**
- * المعالج الرئيسي لفك التشفير والاستيراد
- * يجلب الملف → يفك التشفير → يتحقق من البنية → يستعيد البيانات → يعيد التحميل
- */
 async function processDecryption(){
   const password = document.getElementById('decryptPassword')?.value || '';
   const mode = document.querySelector('input[name="decryptImportMode"]:checked')?.value || 'github';
   const btn = document.getElementById('btnProcessDecryption');
 
-  // التحقق من كلمة المرور
   if(!password){
     setDecryptStatus(tr('decryptErrorNoPassword'), 'error');
     return;
   }
-
-  // التحقق من مكتبة CryptoJS
   if(typeof CryptoJS === 'undefined'){
     setDecryptStatus(tr('decryptErrorNoCrypto'), 'error');
     return;
   }
 
-  // تعطيل الزر أثناء المعالجة
   if(btn) btn.disabled = true;
   setDecryptStatus(tr('decryptLoading'), 'loading');
 
   try {
-    // 1. جلب محتوى الملف
     const encryptedContent = await fetchPop4Content(mode);
-
     if(!encryptedContent || encryptedContent.trim().length < 10){
       throw new Error(tr('decryptErrorEmptyFile'));
     }
 
-    // 2. فك التشفير
     let decryptedData;
     try {
       decryptedData = decryptText(encryptedContent, password);
@@ -3367,12 +3284,10 @@ async function processDecryption(){
       throw new Error(tr('decryptErrorWrongPassword'));
     }
 
-    // 3. التحقق من البنية
     if(!decryptedData || typeof decryptedData !== 'object'){
       throw new Error(tr('decryptErrorInvalidJson'));
     }
 
-    // التحقق من وجود بيانات متوافقة
     const hasTable = Array.isArray(decryptedData.table) && decryptedData.table.length > 0;
     const hasPortfolioData = decryptedData.portfolioData || decryptedData.coins || decryptedData.years;
     const hasSettings = decryptedData.settings;
@@ -3381,19 +3296,13 @@ async function processDecryption(){
       throw new Error(tr('decryptErrorIncompatible'));
     }
 
-    // 4. استعادة البيانات (بدون حذف البيانات القديمة — استبدال كامل)
-
-    // 4-a. استعادة الجدول
     if(hasTable){
       try {
         localStorage.setItem(TABLE_KEY, JSON.stringify(decryptedData.table));
         tableRows = decryptedData.table;
-      } catch(e){
-        console.warn('⚠️ فشل حفظ الجدول:', e);
-      }
+      } catch(e){}
     }
 
-    // 4-b. استعادة الإعدادات
     if(hasSettings){
       try {
         if(decryptedData.settings.lang) currentLang = decryptedData.settings.lang;
@@ -3408,39 +3317,28 @@ async function processDecryption(){
           document.body.classList.remove('light-mode');
         }
         saveSettings();
-      } catch(e){
-        console.warn('⚠️ فشل حفظ الإعدادات:', e);
-      }
+      } catch(e){}
     }
 
-    // 4-c. استعادة بيانات المحفظة (portfolioData)
     if(decryptedData.portfolioData){
       try {
         let pd = decryptedData.portfolioData;
-        // إذا كان string (JSON string كما حفظناه)، نحفظه كما هو
         if(typeof pd === 'string'){
           localStorage.setItem(LS_KEY_DATA, pd);
         } else {
           localStorage.setItem(LS_KEY_DATA, JSON.stringify(pd));
         }
-      } catch(e){
-        console.warn('⚠️ فشل حفظ portfolioData:', e);
-      }
+      } catch(e){}
     }
 
-    // 4-d. حالة خاصة: إذا كان الملف يحتوي على بيانات المحفظة مباشرة (coins/years)
     if(decryptedData.coins || decryptedData.years){
       try {
         localStorage.setItem(LS_KEY_DATA, JSON.stringify(decryptedData));
-      } catch(e){
-        console.warn('⚠️ فشل حفظ البيانات المباشرة:', e);
-      }
+      } catch(e){}
     }
 
-    // 5. إظهار رسالة النجاح
     setDecryptStatus('✅ ' + tr('decryptSuccess'), 'success');
 
-    // 6. إعادة تحميل الصفحة لتطبيق كل التغييرات
     setTimeout(() => {
       try { location.reload(); } catch(e){}
     }, 1500);
@@ -3454,81 +3352,9 @@ async function processDecryption(){
   }
 }
 
-/**
- * تطبيق ترجمات نافذة فك التشفير ديناميكياً
- * (تُستدعى عند فتح النافذة أو تغيير اللغة)
- */
-function applyDecryptModalTranslations(){
-  // Tooltip زر الفاب
-  const tipDecrypt = document.getElementById('tipDecrypt');
-  if(tipDecrypt) tipDecrypt.textContent = tr('tipDecrypt');
-
-  // عنوان النافذة
-  const titleEl = document.querySelector('.decrypt-modal-header h3');
-  if(titleEl) titleEl.textContent = tr('decryptTitle');
-
-  const subtitleEl = document.querySelector('.decrypt-modal-header p');
-  if(subtitleEl) subtitleEl.textContent = tr('decryptSubtitle');
-
-  // عنوان وضع الاستيراد
-  const modeTitleEl = document.querySelector('.decrypt-mode-title');
-  if(modeTitleEl) modeTitleEl.textContent = tr('decryptModeTitle');
-
-  // تسميات أوضاع الاستيراد
-  const modeLabels = document.querySelectorAll('.decrypt-mode-label strong');
-  if(modeLabels[0]) modeLabels[0].textContent = tr('decryptGithubMode');
-  if(modeLabels[1]) modeLabels[1].textContent = tr('decryptLocalMode');
-
-  const modeSmalls = document.querySelectorAll('.decrypt-mode-label small');
-  if(modeSmalls[0]) modeSmalls[0].textContent = tr('decryptGithubModeHint');
-  if(modeSmalls[1]) modeSmalls[1].textContent = tr('decryptLocalModeHint');
-
-  // حقل كلمة المرور
-  const pwLabel = document.querySelector('label[for="decryptPassword"]');
-  if(pwLabel) pwLabel.textContent = tr('decryptPasswordLabel');
-
-  const pwInput = document.getElementById('decryptPassword');
-  if(pwInput) pwInput.placeholder = tr('decryptPasswordPlaceholder');
-
-  // حقل رابط GitHub
-  const urlLabel = document.querySelector('label[for="pop4Url"]');
-  if(urlLabel) urlLabel.textContent = tr('decryptUrlLabel');
-
-  const urlHint = document.querySelector('#decryptGithubMode .decrypt-field-hint');
-  if(urlHint) urlHint.textContent = tr('decryptUrlHint');
-
-  // حقل رفع الملف
-  const fileLabel = document.querySelector('label[for="pop4File"]');
-  if(fileLabel) fileLabel.textContent = tr('decryptFileLabel');
-
-  // أزرار النافذة
-  const btnConfirm = document.getElementById('btnProcessDecryption');
-  if(btnConfirm) btnConfirm.textContent = tr('decryptBtnConfirm');
-
-  const btnCancel = document.querySelector('.decrypt-btn-cancel');
-  if(btnCancel) btnCancel.textContent = tr('decryptBtnCancel');
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ✅ التهيئة النهائية لدوال فك التشفير
-   (ضمان ربط الأحداث بعد تحميل DOM — لا شيء إضافي مطلوب هنا،
-    لأن كل الأحداث مربوطة via onclick في HTML)
-   ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function(){
-  // تطبيق ترجمات نافذة فك التشفير بمجرد تحميل الصفحة
-  try { applyDecryptModalTranslations(); } catch(e) { console.warn('⚠️:', e); }
+  try { applyDecryptModalTranslations(); } catch(e) {}
 
-  // ربط زر Escape لإغلاق النافذة (احتياط إضافي)
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape'){
-      const modal = document.getElementById('decryptModal');
-      if(modal && modal.classList.contains('active')) {
-        closeDecryptModal();
-      }
-    }
-  });
-
-  // النقر خارج النافذة لإغلاقها
   const modal = document.getElementById('decryptModal');
   if(modal){
     modal.addEventListener('click', function(e){
@@ -3538,7 +3364,6 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // دعم Enter في حقل كلمة المرور
   const pwInput = document.getElementById('decryptPassword');
   if(pwInput){
     pwInput.addEventListener('keypress', function(e){
